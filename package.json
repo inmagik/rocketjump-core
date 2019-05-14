@@ -1,0 +1,45 @@
+{
+  "name": "rocketjump-core",
+  "version": "1.1.1",
+  "description": "The core of rocketjump",
+  "main": "./lib/index.cjs.js",
+  "module": "./lib/index.esm.js",
+  "repository": "https://github.com/inmagik/rocketjump-core",
+  "authors": [
+    "Giovanni Fumagalli <giovanni.fumagalli@inmagik.com>",
+    "Mauro Bianchi <mauro.bianchi@inmagik.com>",
+    "Alberto Osio <osioalberto@gmail.com>"
+  ],
+  "scripts": {
+    "format": "prettier --no-semi --single-quote --trailing-comma es5  --write \"{src,__{tests,mocks}__}/**/*.js\"",
+    "prebuild": "rimraf lib",
+    "build": "rollup -c"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/inmagik/rocketjump-core/issues"
+  },
+  "keywords": [
+    "rj",
+    "rocketjump"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "@babel/preset-env": "^7.4.4",
+    "babel-eslint": "9.x",
+    "eslint": "5.x",
+    "eslint-config-react-app": "^4.0.1",
+    "eslint-plugin-flowtype": "2.x",
+    "eslint-plugin-import": "2.x",
+    "eslint-plugin-jsx-a11y": "6.x",
+    "eslint-plugin-react": "7.x",
+    "eslint-plugin-react-hooks": "1.5.0",
+    "prettier": "^1.17.1",
+    "rimraf": "^2.6.3",
+    "rollup": "^1.10.1",
+    "rollup-plugin-babel": "^4.3.2"
+  }
+}
