@@ -1,5 +1,18 @@
 export const arrayze = a => (Array.isArray(a) ? a : [a])
 
+// Simple merge and skip when function....
+export function mergeConfigs(rjsOrConfigs) {
+  return rjsOrConfigs.reduce((finalConfig, config) => {
+    if (typeof config === 'function') {
+      return finalConfig
+    }
+    return {
+      ...finalConfig,
+      ...config,
+    }
+  }, {})
+}
+
 // Thanks lodash
 export function mapValues(object, iteratee) {
   object = Object(object)

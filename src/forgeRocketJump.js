@@ -1,22 +1,8 @@
-import { $TYPE_RJ_EXPORT, $TYPE_RJ_PARTIAL } from './internals'
-
-// Simple merge and skip when function....
-function mergeConfigs(rjsOrConfigs) {
-  return rjsOrConfigs.reduce((finalConfig, config) => {
-    if (typeof config === 'function') {
-      return finalConfig
-    }
-    return {
-      ...finalConfig,
-      ...config,
-    }
-  }, {})
-}
-
-const noop = () => {}
+import { $TYPE_RJ_EXPORT, $TYPE_RJ_PARTIAL, $TYPE_RJ_OBJECT } from './internals'
+import { mergeConfigs } from './utils'
 
 // Forge a rocketjump from in da S T E L L
-export function forgeRocketJump(rjImpl, extendsPartialRj = noop) {
+export default function forgeRocketJump(rjImpl) {
   // Here is where the magic starts the functional recursive rjs combining \*.*/
   function rj(...partialRjsOrConfigs) {
     // ... make the partial config
@@ -68,23 +54,49 @@ export function forgeRocketJump(rjImpl, extendsPartialRj = noop) {
           return rjOrConfig(runConfig, combinedExport, runRjImpl)
         } else {
           // Is a config ... run config + jump config = export
-          return runRjImpl.makeExport(runConfig, rjOrConfig, combinedExport)
+          const newExport = runRjImpl.makeExport(
+            runConfig,
+            rjOrConfig,
+            combinedExport
+          )
+          // Mark export as valid
+          Object.defineProperty(continuedExport, '__rjtype', {
+            value: $TYPE_RJ_EXPORT,
+          })
+          return newExport
         }
       }, continuedExport)
 
       if (isLastRjInvocation) {
-        return runRjImpl.finalizeExport(finalExport, runConfig, finalConfig)
+        // Mark as an Rj Object that can be runned into
+        // rj-react
+        // or mount on redux / saga
+        const rjObject = runRjImpl.finalizeExport(
+          finalExport,
+          runConfig,
+          finalConfig
+        )
+        Object.defineProperty(rjObject, '__rjtype', {
+          value: $TYPE_RJ_OBJECT,
+        })
+        return rjObject
       } else {
         return finalExport
       }
     }
 
-    extendsPartialRj(PartialRj)
+    // Create a rocketjump object at first invocation when is needed
+    if (
+      typeof rjImpl.shouldRocketJump === 'function' &&
+      rjImpl.shouldRocketJump(partialRjsOrConfigs)
+    ) {
+      return PartialRj()
+    }
 
     // Mark the partialRj
     Object.defineProperty(PartialRj, '__rjtype', { value: $TYPE_RJ_PARTIAL })
 
-    PartialRj.config = partialConfig
+    Object.defineProperty(PartialRj, '__rjconfig', { value: partialConfig })
 
     return PartialRj
   }
