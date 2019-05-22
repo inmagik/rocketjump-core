@@ -60,7 +60,7 @@ export default function forgeRocketJump(rjImpl) {
             combinedExport
           )
           // Mark export as valid
-          Object.defineProperty(continuedExport, '__rjtype', {
+          Object.defineProperty(newExport, '__rjtype', {
             value: $TYPE_RJ_EXPORT,
           })
           return newExport
