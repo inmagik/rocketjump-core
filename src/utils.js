@@ -44,9 +44,9 @@ export const proxyObject = (obj, proxy) => {
 // Compose functions
 export const kompose = (...fns) => x => fns.reduce((v, f) => f(v), x)
 
-export const proxyReducer = (reducer, proxyFn) => {
+export const proxyReducer = (reducer, proxyFn, ...extraArgs) => {
   if (typeof proxyFn === 'function') {
-    return proxyFn(reducer)
+    return proxyFn(reducer, ...extraArgs)
   }
   return reducer
 }
