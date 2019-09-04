@@ -13,7 +13,8 @@
   "scripts": {
     "format": "prettier --no-semi --single-quote --trailing-comma es5  --write \"{src,__{tests,mocks}__}/**/*.js\"",
     "prebuild": "rimraf lib",
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "test": "jest"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -30,6 +31,7 @@
     "@babel/core": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
     "babel-eslint": "9.x",
+    "babel-jest": "^24.9.0",
     "eslint": "5.x",
     "eslint-config-react-app": "^4.0.1",
     "eslint-plugin-flowtype": "2.x",
@@ -37,6 +39,7 @@
     "eslint-plugin-jsx-a11y": "6.x",
     "eslint-plugin-react": "7.x",
     "eslint-plugin-react-hooks": "1.5.0",
+    "jest": "^24.9.0",
     "prettier": "^1.17.1",
     "rimraf": "^2.6.3",
     "rollup": "^1.10.1",
