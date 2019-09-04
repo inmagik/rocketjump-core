@@ -1,5 +1,6 @@
 {
   "name": "rocketjump-core",
+  "sideEffects": false,
   "version": "1.4.0",
   "description": "The core of rocketjump",
   "main": "./lib/index.cjs.js",
@@ -28,8 +29,8 @@
     "rocketjump"
   ],
   "devDependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/preset-env": "^7.4.4",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
     "babel-eslint": "10.x",
     "babel-jest": "^24.9.0",
     "eslint": "6.x",
@@ -40,9 +41,9 @@
     "eslint-plugin-react": "7.x",
     "eslint-plugin-react-hooks": "1.x",
     "jest": "^24.9.0",
-    "prettier": "^1.17.1",
-    "rimraf": "^2.6.3",
-    "rollup": "^1.10.1",
-    "rollup-plugin-babel": "^4.3.2"
+    "prettier": "^1.18.2",
+    "rimraf": "^3.0.0",
+    "rollup": "^1.20.3",
+    "rollup-plugin-babel": "^4.3.3"
   }
 }
