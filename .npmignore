@@ -1,6 +1,7 @@
 /src
 .babel*
 rollup.config.js
+.travis.yml
 
 # dependencies
 /node_modules
