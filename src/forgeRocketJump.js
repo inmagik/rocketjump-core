@@ -76,9 +76,9 @@ export default function forgeRocketJump(rjImpl) {
           runConfig,
           finalConfig
         )
-        Object.defineProperty(rjObject, '__rjtype', {
-          value: $TYPE_RJ_OBJECT,
-        })
+        Object.defineProperty(rjObject, '__rjtype', { value: $TYPE_RJ_OBJECT })
+        // Ship the last config in rj chain
+        Object.defineProperty(rjObject, '__rjconfig', { value: partialConfig })
         return rjObject
       } else {
         return finalExport
