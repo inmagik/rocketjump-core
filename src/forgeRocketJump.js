@@ -79,6 +79,10 @@ export default function forgeRocketJump(rjImpl) {
         Object.defineProperty(rjObject, '__rjtype', { value: $TYPE_RJ_OBJECT })
         // Ship the last config in rj chain
         Object.defineProperty(rjObject, '__rjconfig', { value: partialConfig })
+        // Attach rj family to rocketjump object
+        if (rjImpl.family) {
+          Object.defineProperty(rjObject, '__rjfamily', { value: rjImpl.family })
+        }
         return rjObject
       } else {
         return finalExport
@@ -98,7 +102,17 @@ export default function forgeRocketJump(rjImpl) {
 
     Object.defineProperty(PartialRj, '__rjconfig', { value: partialConfig })
 
+    // Attach rj family to rocketjump partial
+    if (rjImpl.family) {
+      Object.defineProperty(PartialRj, '__rjfamily', { value: rjImpl.family })
+    }
+
     return PartialRj
+  }
+
+  // Attach the RJ Family!
+  if (rjImpl.family) {
+    Object.defineProperty(rj, '__rjfamily', { value: rjImpl.family })
   }
 
   return rj
