@@ -12,9 +12,10 @@
     "Alberto Osio <osioalberto@gmail.com>"
   ],
   "scripts": {
-    "format": "prettier --no-semi --single-quote --trailing-comma es5  --write \"{src,__{tests,mocks}__}/**/*.js\"",
+    "format": "prettier --no-semi --single-quote --trailing-comma es5 --write \"{src,__{tests,mocks}__}/**/*.js\"",
     "prebuild": "rimraf lib",
     "build": "rollup -c",
+    "build:watch": "rollup -c -w",
     "test": "jest"
   },
   "eslintConfig": {
@@ -28,6 +29,9 @@
     "rj",
     "rocketjump"
   ],
+  "peerDependencies": {
+    "react": "^16.8.0"
+  },
   "devDependencies": {
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",

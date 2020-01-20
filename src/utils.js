@@ -1,5 +1,26 @@
 export const arrayze = a => (Array.isArray(a) ? a : [a])
 
+// Object path getter
+export function get(obj, path, defaultValue = undefined) {
+  const keys = path.split('.')
+  const result =
+    obj === null
+      ? undefined
+      : keys.reduce((context, current) => context[current], obj)
+  return result === undefined ? defaultValue : result
+}
+
+// Invert object keys with values
+export function invertKeys(object) {
+  return Object.keys(object).reduce(
+    (inverted, key) => ({
+      ...inverted,
+      [object[key]]: key,
+    }),
+    {}
+  )
+}
+
 // Simple merge and skip when function....
 export function mergeConfigs(rjsOrConfigs) {
   return rjsOrConfigs.reduce((finalConfig, config) => {
