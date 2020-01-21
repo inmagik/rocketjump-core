@@ -5,9 +5,9 @@ export function isPartialRj(partialRj, rj) {
     if (partialRj.__rjtype !== $TYPE_RJ_PARTIAL) {
       return false
     }
-    // When a rj is given check for same rj family!
+    // When a rj is given check for same rj implementation!
     if (typeof rj === 'function') {
-      return rj.__rjfamily === partialRj.__rjfamily
+      return rj.__rjimplementation === partialRj.__rjimplementation
     } else {
       return true
     }
@@ -20,9 +20,9 @@ export function isObjectRj(objRj, rj) {
     if (objRj.__rjtype !== $TYPE_RJ_OBJECT) {
       return false
     }
-    // When a rj is given check for same rj family!
+    // When a rj is given check for same rj implementation!
     if (typeof rj === 'function') {
-      return rj.__rjfamily === objRj.__rjfamily
+      return rj.__rjimplementation === objRj.__rjimplementation
     } else {
       return true
     }

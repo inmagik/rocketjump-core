@@ -25,7 +25,6 @@ describe('rocketjump-core crafter', () => {
   it('shoudl able to check generics family types', () => {
 
     const rjGiova = forgeRocketJump({
-      family: Symbol('GioVa'),
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
       makeRecursionRjs: rjs => rjs, // don't touch configs
@@ -36,7 +35,6 @@ describe('rocketjump-core crafter', () => {
     })
 
     const rjSkaffo = forgeRocketJump({
-      family: Symbol('Skaffo-KDS2009'),
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
       makeRecursionRjs: rjs => rjs, // don't touch configs

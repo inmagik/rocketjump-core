@@ -10,9 +10,9 @@ export default function createUseRunRj(useRj) {
     rjObject,
     runArgs = [],
     shouldCleanOnNewEffect = true,
-    selectState
+    ...params
   ) {
-    const [state, originalActions] = useRj(rjObject, selectState)
+    const [state, originalActions] = useRj(rjObject, ...params)
     const { run, clean } = originalActions
 
     const [withMeta, setWithMeta] = useState({})
