@@ -6,7 +6,14 @@ export default function forgeRocketJump(rjImpl) {
   // Here is where the magic starts the functional recursive rjs combining \*.*/
   function rj(...partialRjsOrConfigs) {
     // ... make the partial config
-    const partialConfig = mergeConfigs(partialRjsOrConfigs)
+    let partialConfig
+    if (typeof rjImpl.makePartialConfig === 'function') {
+      // Implement the partial config on an Rj
+      partialConfig = rjImpl.makePartialConfig(partialRjsOrConfigs)
+    } else {
+      // Standard merge config implementation
+      partialConfig = mergeConfigs(partialRjsOrConfigs)
+    }
 
     // Make the partial rj
     function PartialRj(extraConfig, extendExportArg, runRjImpl = rjImpl) {
