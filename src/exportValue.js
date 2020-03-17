@@ -43,7 +43,7 @@ export function makeExportValue({
   defaultValue,
   isLazy,
   shouldCompose,
-  compose
+  compose,
 }) {
   return (exportValue, configValue) => {
     // Assing a default value to export value
@@ -62,7 +62,11 @@ export function makeExportValue({
 
       // Lazy placeholder
       if (isLazy(configValue)) {
-        return new LazyValue({ shouldCompose, isLazy, compose }, exportValue, configValue)
+        return new LazyValue(
+          { shouldCompose, isLazy, compose },
+          exportValue,
+          configValue
+        )
       }
 
       // Normal composition

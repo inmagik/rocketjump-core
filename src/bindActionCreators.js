@@ -1,4 +1,5 @@
 import { isEffectAction } from './actions'
+import { shouldRunDeps, getMetaFromDeps, getRunValuesFromDeps } from './deps/funcs'
 
 /**
  * Builder pattern implementation for action creators calls
@@ -35,15 +36,35 @@ class Builder {
     return this
   }
 
-  run(...args) {
+  run(...argsWithDeps) {
+    // Deps can't be runned
+    if (!shouldRunDeps(argsWithDeps)) {
+      return
+    }
+
+    // Squash meta into values
+    const args = getRunValuesFromDeps(argsWithDeps)
     let action = this.actionCreator(...args)
+
     if (isEffectAction(action)) {
       action = action.extend({
         callbacks: this.callbacks,
       })
+
+      // Apply meta from deps
+      const extraMetaFromDeps = getMetaFromDeps(
+        argsWithDeps,
+        null, // No prev args
+        false // Not on "mount"
+      )
+      action = action.withMeta(extraMetaFromDeps)
+
+      // Apply meta from Builder .withMeta().withMeta()
       action = this.metaTransforms.reduce((action, transform) => {
         return action.withMeta(transform)
       }, action)
+
+      // Remove *magic* stuff
       delete action.extend
       delete action.withMeta
     }
@@ -167,9 +188,24 @@ function attachBuilder(boundActionCreator, actionCreator, dispatch) {
  *
  */
 function bindActionCreator(actionCreator, dispatch) {
-  const out = (...args) => {
-    const action = actionCreator(...args)
+  const out = (...argsWithDeps) => {
+    // Deps can't be runned
+    if (!shouldRunDeps(argsWithDeps)) {
+      return
+    }
+
+    // Squash meta into values
+    const args = getRunValuesFromDeps(argsWithDeps)
+    let action = actionCreator(...args)
+
     if (isEffectAction(action)) {
+      // Apply meta from deps
+      const extraMetaFromDeps = getMetaFromDeps(
+        argsWithDeps,
+        null, // No prev args
+        false // Not on "mount"
+      )
+      action = action.withMeta(extraMetaFromDeps)
       delete action.extend
       delete action.withMeta
       dispatch(action)

@@ -3,7 +3,6 @@ import { isPartialRj, isObjectRj } from '../types'
 
 describe('rocketjump-core crafter', () => {
   it('shoudl able to check generics types', () => {
-
     const rjGiova = forgeRocketJump({
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
@@ -23,7 +22,6 @@ describe('rocketjump-core crafter', () => {
     expect(isObjectRj(RjStateObject)).toBe(true)
   })
   it('shoudl able to check generics family types', () => {
-
     const rjGiova = forgeRocketJump({
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config

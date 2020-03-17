@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { getRunValuesFromDeps, shouldRunDeps, getMetaFromDeps } from './deps'
+import {
+  getRunValuesFromDeps,
+  shouldRunDeps,
+  getMetaFromDeps,
+} from './deps/funcs'
 
 // Use a rocketjump and run it according to run arguments.
 // This is only a syntax sugar over useRj and useEffect,
@@ -26,7 +30,7 @@ export default function createUseRunRj(useRj) {
       const shouldRun = shouldRunDeps(runArgs)
 
       if (shouldRun) {
-        const meta = getMetaFromDeps(prevRunValues.current, runArgs)
+        const meta = getMetaFromDeps(runArgs, prevRunValues.current)
         // Add meta only if setWithMeta in called along with last args update
         let hackRunWithMeta = {}
         if (prevWithMeta.current && prevWithMeta.current !== withMeta) {

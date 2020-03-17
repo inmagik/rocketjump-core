@@ -10,7 +10,7 @@ describe('rocketjump-core', () => {
       makeRecursionRjs: rjs => rjs, // don't touch configs
       makeExport: (_, config, rjExport = {}) => {
         return {
-          message: (rjExport.message || '') + (config.m || '') ,
+          message: (rjExport.message || '') + (config.m || ''),
           magic: (config.n || 0) + (rjExport.magic || 0),
         }
       },
@@ -19,29 +19,31 @@ describe('rocketjump-core', () => {
 
     expect(rj({})()).toEqual({ magic: 0, message: '' })
 
-    expect(rj(
-      {
-        n: 23,
-        m: 'R',
-      },
-      {
-        n: 10,
-        m: 'J',
-      }
-    )()).toEqual({ magic: 33, message: 'RJ' })
+    expect(
+      rj(
+        {
+          n: 23,
+          m: 'R',
+        },
+        {
+          n: 10,
+          m: 'J',
+        }
+      )()
+    ).toEqual({ magic: 33, message: 'RJ' })
 
-    expect(rj(
-      {
-        n: 10,
-        m: 'G'
-      },
-      rj({ n: 3, m: 'i' }, { n: 3, m: 'o' })
-    )()).toEqual({ magic: 16, message: 'Gio' })
-
+    expect(
+      rj(
+        {
+          n: 10,
+          m: 'G',
+        },
+        rj({ n: 3, m: 'i' }, { n: 3, m: 'o' })
+      )()
+    ).toEqual({ magic: 16, message: 'Gio' })
   })
 
   it('should kick ass with recursion but lazy', () => {
-
     const exportMessage = makeExportValue({
       defaultValue: '',
       isLazy: v => v === null,
@@ -62,28 +64,29 @@ describe('rocketjump-core', () => {
 
     expect(rj({})()).toEqual({ message: '' })
 
-    expect(rj(
-      {
-        m: 'R',
-      },
-      {
-        m: 'J',
-      }
-    )()).toEqual({ message: 'RJ' })
+    expect(
+      rj(
+        {
+          m: 'R',
+        },
+        {
+          m: 'J',
+        }
+      )()
+    ).toEqual({ message: 'RJ' })
 
     let e = {}
 
     e = rj(
       {
-        m: 'G'
+        m: 'G',
       },
       rj({ m: null }, { m: 'o' }),
       rj({ m: null }),
-      rj({ m: ' ~ Matto IL DRAGO' }, { m: null }),
+      rj({ m: ' ~ Matto IL DRAGO' }, { m: null })
     )()
-    expect(squashExportValue(e.message, ['1', 'Va', ' 23']))
-      .toBe('G1oVa ~ Matto IL DRAGO 23')
-
+    expect(squashExportValue(e.message, ['1', 'Va', ' 23'])).toBe(
+      'G1oVa ~ Matto IL DRAGO 23'
+    )
   })
-
 })

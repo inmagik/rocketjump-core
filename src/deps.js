@@ -94,12 +94,26 @@ const WithAlwaysMeta = meta =>
     skipRunValue: true,
   })
 
-const getDepValue = a => ifDep(a, () => a.getValue(), () => a)
+const getDepValue = a =>
+  ifDep(
+    a,
+    () => a.getValue(),
+    () => a
+  )
 
 const getDepMeta = (a, onMount) =>
-  ifDep(a, () => a.getMeta(onMount), () => undefined)
+  ifDep(
+    a,
+    () => a.getMeta(onMount),
+    () => undefined
+  )
 
-const shouldDepRun = a => ifDep(a, () => a.shouldRun(), () => true)
+const shouldDepRun = a =>
+  ifDep(
+    a,
+    () => a.shouldRun(),
+    () => true
+  )
 
 // useRunRj methods
 
