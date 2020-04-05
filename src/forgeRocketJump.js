@@ -1,10 +1,76 @@
 import { $TYPE_RJ_EXPORT, $TYPE_RJ_PARTIAL, $TYPE_RJ_OBJECT } from './internals'
 import { mergeConfigs } from './utils'
 import { isPartialRj } from './types'
-import makeRjPlugin from './rjPlugin'
+
+export default function forgeRocketJump(rjImpl) {
+  const pureRj = makeRjFn(rjImpl)
+  // Global config of all rj except for Generated from Plugins
+  const rjGlobals = {
+    rjs: [],
+    pluginsDefaults: {},
+  }
+
+  // Wrap pure rj and prepend global base rjs
+  function rj(...partialRjsOrConfigs) {
+    return pureRj(...rjGlobals.rjs, ...partialRjsOrConfigs)
+  }
+
+  rj.clearGlobalRjs = () => {
+    rjGlobals.rjs = []
+  }
+  rj.setGlobalRjs = rjs => {
+    rjGlobals.rjs = rjs
+  }
+
+  rj.clearPluginsDefault = () => {
+    rjGlobals.pluginsDefaults = {}
+  }
+  rj.setPluginsDefault = pluginsDefaults => {
+    rjGlobals.pluginsDefaults = pluginsDefaults
+  }
+
+  // Attach the RJ Implementation to rj constructor! Fuck YEAH!
+  Object.defineProperty(rj, '__rjimplementation', { value: rjImpl })
+
+  rj.plugin = makeRjPlugin(rjGlobals)
+  rj.pure = pureRj
+
+  return rj
+}
+
+function makeRjPlugin(rjGlobals) {
+  function rjPlugin(
+    createPartialRj,
+    plugInConfigArg
+  ) {
+    let plugInConfig = null
+    if (typeof plugInConfigArg === 'object' && plugInConfigArg !== null) {
+      // Can't touch plugin config anymore
+      plugInConfig = Object.freeze({ ...plugInConfigArg })
+    }
+    return function rjPluginBuilder(...args) {
+      let partialRj
+      if (
+        arguments.length === 0 &&
+        rjGlobals &&
+        plugInConfig &&
+        plugInConfig.name &&
+        rjGlobals[plugInConfig.name]
+      ) {
+        // No args give use default global settings when got it
+        partialRj = createPartialRj(...rjGlobals[plugInConfig.name])
+      } else {
+        partialRj = createPartialRj(...args)
+      }
+      partialRj.__plugins = new Set([plugInConfig, ...partialRj.__plugins])
+      return partialRj
+    }
+  }
+  return rjPlugin
+}
 
 // Forge a rocketjump from in da S T E L L
-export default function forgeRocketJump(rjImpl) {
+function makeRjFn(rjImpl) {
   // Here is where the magic starts the functional recursive rjs combining \*.*/
   function rj(...partialRjsOrConfigs) {
     // Grab a Set of plugins config in current rj Tree
@@ -128,8 +194,6 @@ export default function forgeRocketJump(rjImpl) {
 
   // Attach the RJ Implementation to rj constructor! Fuck YEAH!
   Object.defineProperty(rj, '__rjimplementation', { value: rjImpl })
-
-  rj.Plugin = makeRjPlugin(rj)
 
   return rj
 }

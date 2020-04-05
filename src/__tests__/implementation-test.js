@@ -123,7 +123,7 @@ describe('rocketjump-core implementation', () => {
     //   }
     // })
 
-    const plugin1 = rj.Plugin(
+    const plugin1 = rj.plugin(
       (age = 20) =>
         rj({
           foo: {
@@ -159,9 +159,9 @@ describe('rocketjump-core implementation', () => {
       }
     )
 
-    const plugin2 = rj.Plugin(
+    const plugin2 = rj.plugin(
       (gang = 23) =>
-        rj(plugin1(99), {
+        rj.pure(plugin1(99), {
           babu: 'Budda',
           foo: {
             gang,
@@ -172,9 +172,9 @@ describe('rocketjump-core implementation', () => {
       }
     )
 
-    const plugin3 = rj.Plugin(
+    const plugin3 = rj.plugin(
       (g = 'Ciko') =>
-        rj(plugin2(1), {
+        rj.pure(plugin2(1), {
           foo: {
             g,
           },

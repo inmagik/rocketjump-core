@@ -7,11 +7,18 @@ const vendors = []
     Object.keys(pkg.peerDependencies),
   )
 
-export default ['index', 'utils'].map(input => ({
-  input: `src/${input}.js`,
+export default ['esm', 'cjs'].map(format => ({
+  input: {
+    'index': 'src/index.js',
+    'utils': 'src/utils.js',
+  },
   output: [
-    { file: `lib/${input}.cjs.js`, format: 'cjs', exports: 'named' },
-    { file: `lib/${input}.esm.js`, format: 'esm' },
+    {
+      dir: 'lib',
+      entryFileNames: '[name].[format].js',
+      exports: 'named',
+      format
+    }
   ],
   external: vendors,
   plugins: [babel({ exclude: 'node_modules/**' })],
