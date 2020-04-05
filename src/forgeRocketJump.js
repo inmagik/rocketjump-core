@@ -1,11 +1,18 @@
 import { $TYPE_RJ_EXPORT, $TYPE_RJ_PARTIAL, $TYPE_RJ_OBJECT } from './internals'
 import { mergeConfigs } from './utils'
+import { isPartialRj } from './types'
 
 // Forge a rocketjump from in da S T E L L
 export default function forgeRocketJump(rjImpl) {
   // Here is where the magic starts the functional recursive rjs combining \*.*/
   function rj(...partialRjsOrConfigs) {
-    // ... make the partial config
+    // Grab a Set of plugins config in current rj Tree
+    const plugIns = partialRjsOrConfigs.reduce((resultSet, a) => {
+      if (isPartialRj(a)) {
+        a.plugins.forEach(plugin => resultSet.add(plugin))
+      }
+      return resultSet
+    }, new Set())
     let partialConfig
     if (typeof rjImpl.makePartialConfig === 'function') {
       // Implement the partial config on an Rj
@@ -64,7 +71,8 @@ export default function forgeRocketJump(rjImpl) {
           const newExport = runRjImpl.makeExport(
             runConfig,
             rjOrConfig,
-            combinedExport
+            combinedExport,
+            plugIns
           )
           // Mark export as valid
           Object.defineProperty(newExport, '__rjtype', {
@@ -81,7 +89,8 @@ export default function forgeRocketJump(rjImpl) {
         const rjObject = runRjImpl.finalizeExport(
           finalExport,
           runConfig,
-          finalConfig
+          finalConfig,
+          plugIns,
         )
         Object.defineProperty(rjObject, '__rjtype', { value: $TYPE_RJ_OBJECT })
         // Ship the last config in rj chain
@@ -109,6 +118,9 @@ export default function forgeRocketJump(rjImpl) {
 
     // Attach the RJ Implementation to rj partial! Fuck YEAH!
     Object.defineProperty(PartialRj, '__rjimplementation', { value: rjImpl })
+
+    // All plugins in the partial rj tree
+    PartialRj.plugins = plugIns
 
     return PartialRj
   }

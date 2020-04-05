@@ -12,3 +12,6 @@ export const $TYPE_RJ_EXPORT = Symbol('rj~export')
 // The final rj runnable object
 // rj(...)() or rj(... launched ->)
 export const $TYPE_RJ_OBJECT = Symbol('rj~object')
+
+// RJ Plugin <3 Sempre sulla stessa wave
+export const $TYPE_RJ_PLUGIN = Symbol('rj~plugin')
