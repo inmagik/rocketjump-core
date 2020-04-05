@@ -16,3 +16,22 @@ export function enhanceFinalExportWithPlugins(
   })
   return enhancedExport
 }
+
+export function enhanceMakeExportWithPlugins(
+  runConfig,
+  config,
+  combinedExport,
+  plugIns
+) {
+  let enhancedExport = combinedExport
+  plugIns.forEach(plugin => {
+    if (plugin.makeExport) {
+      enhancedExport = plugin.makeExport(
+        runConfig,
+        config,
+        enhancedExport,
+      )
+    }
+  })
+  return enhancedExport
+}

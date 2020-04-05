@@ -1,7 +1,9 @@
 import forgeRocketJump from '../forgeRocketJump'
 import rjPlugin from '../rjPlugin'
-import { enhanceFinalExportWithPlugins } from '../plugins'
-
+import {
+  enhanceFinalExportWithPlugins,
+  enhanceMakeExportWithPlugins,
+} from '../plugins'
 
 describe('rocketjump-core implementation', () => {
   it('should respect rj implementation', () => {
@@ -70,8 +72,8 @@ describe('rocketjump-core implementation', () => {
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
       makeRecursionRjs: rjs => rjs, // don't touch configs
-      makeExport: (_, config, rjExport = {}) => {
-        let newExport = {}
+      makeExport: (runConfig, config, rjExport = {}, plugIns) => {
+        let newExport = { ...rjExport }
         // Default foo values
         newExport.foo = rjExport.foo || {
           name: 'GioVa',
@@ -81,7 +83,13 @@ describe('rocketjump-core implementation', () => {
           ...newExport.foo,
           ...(config || {}).foo,
         }
-        return newExport
+
+        return enhanceMakeExportWithPlugins(
+          runConfig,
+          config,
+          newExport,
+          plugIns
+        )
       },
       finalizeExport: (rjExport, runConfig, finalConfig, plugIns) => {
         const finalExport = { ...rjExport }
@@ -94,41 +102,62 @@ describe('rocketjump-core implementation', () => {
       },
     })
 
-    const plugin1 = rjPlugin((age = 20) => rj({
-      foo: {
-        age,
+    const plugin1 = rjPlugin(
+      (age = 20) =>
+        rj({
+          foo: {
+            age,
+          },
+        }),
+      {
+        name: 'One',
+        finalizeExport: (finalExport, _, config) => {
+          return {
+            ...finalExport,
+            override: 'G E M E L L O',
+          }
+        },
+        makeExport: (_, config, extendExport = {}) => {
+          const betterExport = {
+            ...extendExport,
+          }
+          if (config.babu) {
+            betterExport.babu = config.babu
+          }
+          return betterExport
+        },
       }
-    }), {
-      name: 'One',
-      finalizeExport: (finalizeExport, _, config) => {
-        console.log('~~~', config)
-        return {
-          ...finalizeExport,
-          override: 'G E M E L L O'
-        }
-      }
-    })
+    )
 
-    const plugin2 = rjPlugin((gang = 23) => rj(plugin1(99), {
-      foo: {
-        gang,
+    const plugin2 = rjPlugin(
+      (gang = 23) =>
+        rj(plugin1(99), {
+          babu: 'Budda',
+          foo: {
+            gang,
+          },
+        }),
+      {
+        name: 'Two',
       }
-    }), {
-      name: 'Two'
-    })
+    )
 
-    const plugin3 = rjPlugin((g = 'Ciko') => rj(plugin2(1), {
-      foo: {
-        g,
+    const plugin3 = rjPlugin(
+      (g = 'Ciko') =>
+        rj(plugin2(1), {
+          foo: {
+            g,
+          },
+        }),
+      {
+        name: '##3',
       }
-    }), {
-      name: '##3'
-    })
+    )
 
     rj(
       // rjAjax(),
       {
-        effect: () => '/api/todos'
+        effect: () => '/api/todos',
       }
     )
 
@@ -137,10 +166,11 @@ describe('rocketjump-core implementation', () => {
       // plugin1(),
       // plugin1(),
       {
-      foo: {
-        name: 'GiGino',
-      },
-    })()
+        foo: {
+          name: 'GiGino',
+        },
+      }
+    )()
     // console.log(RjObjectA)
     // console.log(RjObjectA.plugins)
     expect(RjObjectA).toEqual({
@@ -150,8 +180,8 @@ describe('rocketjump-core implementation', () => {
         age: 99,
         g: 'Noyz',
       },
-      override: 'G E M E L L O'
+      babu: 'Budda',
+      override: 'G E M E L L O',
     })
-
   })
 })
