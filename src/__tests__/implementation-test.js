@@ -1,8 +1,8 @@
 import forgeRocketJump from '../forgeRocketJump'
-import rjPlugin from '../rjPlugin'
 import {
   enhanceFinalExportWithPlugins,
   enhanceMakeExportWithPlugins,
+  enhanceWithPlugins,
 } from '../plugins'
 
 describe('rocketjump-core implementation', () => {
@@ -24,7 +24,7 @@ describe('rocketjump-core implementation', () => {
         }
         return newExport
       },
-      finalizeExport: rjExport => {
+      finalizeExport: (rjExport, runConfig, finalConfig, plugIns) => {
         // don't hack config
         return { ...rjExport }
       },
@@ -91,8 +91,19 @@ describe('rocketjump-core implementation', () => {
           plugIns
         )
       },
-      finalizeExport: (rjExport, runConfig, finalConfig, plugIns) => {
-        const finalExport = { ...rjExport }
+      finalizeExport: (rjExportArg, runConfig, finalConfig, plugIns) => {
+        const rjExport = enhanceWithPlugins(
+          plugIns,
+          rjExportArg,
+          'hackExportBeforeFinalize'
+        )
+        let finalExport = { ...rjExport }
+        if (finalExport.foo.king === 'giova') {
+          finalExport = {
+            KING: '$$',
+            ...finalExport,
+          }
+        }
         return enhanceFinalExportWithPlugins(
           finalExport,
           runConfig,
@@ -102,7 +113,17 @@ describe('rocketjump-core implementation', () => {
       },
     })
 
-    const plugin1 = rjPlugin(
+    // rj.setGlobals(
+    //   rjPlugin(),
+    // )
+    //
+    // rj.setPluginsDefault({
+    //   list: {
+    //
+    //   }
+    // })
+
+    const plugin1 = rj.Plugin(
       (age = 20) =>
         rj({
           foo: {
@@ -117,6 +138,15 @@ describe('rocketjump-core implementation', () => {
             override: 'G E M E L L O',
           }
         },
+        hackExportBeforeFinalize: (finalExport) => {
+          return {
+            ...finalExport,
+            foo: {
+              ...finalExport.foo,
+              king: 'giova',
+            }
+          }
+        },
         makeExport: (_, config, extendExport = {}) => {
           const betterExport = {
             ...extendExport,
@@ -129,7 +159,7 @@ describe('rocketjump-core implementation', () => {
       }
     )
 
-    const plugin2 = rjPlugin(
+    const plugin2 = rj.Plugin(
       (gang = 23) =>
         rj(plugin1(99), {
           babu: 'Budda',
@@ -142,7 +172,7 @@ describe('rocketjump-core implementation', () => {
       }
     )
 
-    const plugin3 = rjPlugin(
+    const plugin3 = rj.Plugin(
       (g = 'Ciko') =>
         rj(plugin2(1), {
           foo: {
@@ -179,7 +209,9 @@ describe('rocketjump-core implementation', () => {
         gang: 1,
         age: 99,
         g: 'Noyz',
+        king: 'giova',
       },
+      KING: '$$',
       babu: 'Budda',
       override: 'G E M E L L O',
     })

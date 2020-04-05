@@ -1,6 +1,7 @@
 import { $TYPE_RJ_EXPORT, $TYPE_RJ_PARTIAL, $TYPE_RJ_OBJECT } from './internals'
 import { mergeConfigs } from './utils'
 import { isPartialRj } from './types'
+import makeRjPlugin from './rjPlugin'
 
 // Forge a rocketjump from in da S T E L L
 export default function forgeRocketJump(rjImpl) {
@@ -9,7 +10,7 @@ export default function forgeRocketJump(rjImpl) {
     // Grab a Set of plugins config in current rj Tree
     const plugIns = partialRjsOrConfigs.reduce((resultSet, a) => {
       if (isPartialRj(a)) {
-        a.plugins.forEach(plugin => resultSet.add(plugin))
+        a.__plugins.forEach(plugin => resultSet.add(plugin))
       }
       return resultSet
     }, new Set())
@@ -120,13 +121,15 @@ export default function forgeRocketJump(rjImpl) {
     Object.defineProperty(PartialRj, '__rjimplementation', { value: rjImpl })
 
     // All plugins in the partial rj tree
-    PartialRj.plugins = plugIns
+    PartialRj.__plugins = plugIns
 
     return PartialRj
   }
 
   // Attach the RJ Implementation to rj constructor! Fuck YEAH!
   Object.defineProperty(rj, '__rjimplementation', { value: rjImpl })
+
+  rj.Plugin = makeRjPlugin(rj)
 
   return rj
 }
