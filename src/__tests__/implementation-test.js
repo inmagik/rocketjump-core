@@ -1,16 +1,9 @@
 import forgeRocketJump from '../forgeRocketJump'
-import {
-  enhanceFinalExportWithPlugins,
-  enhanceMakeExportWithPlugins,
-  enhanceWithPlugins,
-} from '../plugins'
+import { enhanceWithPlugins } from '../plugins'
 
 describe('rocketjump-core implementation', () => {
   it('should respect rj implementation', () => {
     const rj = forgeRocketJump({
-      shouldRocketJump: () => false, // double invocation
-      makeRunConfig: () => null, // no run config
-      makeRecursionRjs: rjs => rjs, // don't touch configs
       makeExport: (_, config, rjExport = {}) => {
         let newExport = {}
         // Default foo values
@@ -68,11 +61,12 @@ describe('rocketjump-core implementation', () => {
     })
   })
   it('should respect hande plugins', () => {
+    const MAIN = {
+      name: 'MAIN',
+    }
     const rj = forgeRocketJump({
-      shouldRocketJump: () => false, // double invocation
-      makeRunConfig: () => null, // no run config
-      makeRecursionRjs: rjs => rjs, // don't touch configs
       makeExport: (runConfig, config, rjExport = {}, plugIns) => {
+        // console.log('~~~', plugIns)
         let newExport = { ...rjExport }
         // Default foo values
         newExport.foo = rjExport.foo || {
@@ -84,11 +78,14 @@ describe('rocketjump-core implementation', () => {
           ...(config || {}).foo,
         }
 
-        return enhanceMakeExportWithPlugins(
-          runConfig,
-          config,
+        return enhanceWithPlugins(
+          plugIns,
           newExport,
-          plugIns
+          'makeExport',
+          [
+            runConfig,
+            config,
+          ]
         )
       },
       finalizeExport: (rjExportArg, runConfig, finalConfig, plugIns) => {
@@ -104,14 +101,17 @@ describe('rocketjump-core implementation', () => {
             ...finalExport,
           }
         }
-        return enhanceFinalExportWithPlugins(
+        return enhanceWithPlugins(
+          plugIns,
           finalExport,
-          runConfig,
-          finalConfig,
-          plugIns
+          'finalizeExport',
+          [
+            runConfig,
+            finalConfig,
+          ]
         )
       },
-    })
+    }, [MAIN])
 
     // rj.setGlobals(
     //   rjPlugin(),
@@ -138,16 +138,16 @@ describe('rocketjump-core implementation', () => {
             override: 'G E M E L L O',
           }
         },
-        hackExportBeforeFinalize: (finalExport) => {
+        hackExportBeforeFinalize: finalExport => {
           return {
             ...finalExport,
             foo: {
               ...finalExport.foo,
               king: 'giova',
-            }
+            },
           }
         },
-        makeExport: (_, config, extendExport = {}) => {
+        makeExport: (extendExport, _, config) => {
           const betterExport = {
             ...extendExport,
           }
@@ -184,36 +184,52 @@ describe('rocketjump-core implementation', () => {
       }
     )
 
-    rj(
-      // rjAjax(),
-      {
-        effect: () => '/api/todos',
-      }
-    )
+    // rj(
+    //   // rjAjax(),
+    //   {
+    //     effect: () => '/api/todos',
+    //   }
+    // )
+    rj.setPluginsDefaults({
+      One: ['KETY'],
+    })
 
     const RjObjectA = rj(
-      rj(plugin3('Noyz')),
+      // rj(rj({})),
+      // rj(
+      // plugin1(),
+      // rj(
+      //   rj({
+      //     babu: 23,
+      //   })
+      // ),
+      // rj({
+      //   babu: 23,
+      // }),
+      // ),
       // plugin1(),
       // plugin1(),
       {
         foo: {
           name: 'GiGino',
         },
+        // babu: 'Super'
       }
     )()
+    console.log('U', RjObjectA)
     // console.log(RjObjectA)
     // console.log(RjObjectA.plugins)
-    expect(RjObjectA).toEqual({
-      foo: {
-        name: 'GiGino',
-        gang: 1,
-        age: 99,
-        g: 'Noyz',
-        king: 'giova',
-      },
-      KING: '$$',
-      babu: 'Budda',
-      override: 'G E M E L L O',
-    })
+    // expect(RjObjectA).toEqual({
+    //   foo: {
+    //     name: 'GiGino',
+    //     gang: 1,
+    //     age: 99,
+    //     g: 'Noyz',
+    //     king: 'giova',
+    //   },
+    //   KING: '$$',
+    //   babu: 'Budda',
+    //   override: 'G E M E L L O',
+    // })
   })
 })

@@ -1,7 +1,7 @@
 {
   "name": "rocketjump-core",
   "sideEffects": false,
-  "version": "0.0.0-experimental-c170",
+  "version": "0.0.0-experimental-c177",
   "description": "The core of rocketjump",
   "main": "./lib/index.cjs.js",
   "module": "./lib/index.esm.js",
