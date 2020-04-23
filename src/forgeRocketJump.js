@@ -9,9 +9,14 @@ function unionSet(setA, setB) {
 }
 
 const DefaultRjImplementation = {
+  mark: null, // A Symbol to identify implementation!
+
   // Standard merge config implementation
   makePartialConfig: (partialRjsOrConfigs, plugIns) =>
     mergeConfigs(partialRjsOrConfigs),
+
+  // Default 2X invocation rj()() -> RjObject you can hack this here hehehe
+  shouldRocketJump: (partialRjsOrConfigs, plugIns) => false,
 
   // Should be implemented (if you need a run config)
   makeRunConfig: (finalConfig, plugIns) => null,
@@ -41,12 +46,28 @@ const DefaultRjImplementation = {
     throw new Error()
   },
 
-  // Default 2X invocation rj()() -> RjObject you can hack this here hehehe
-  shouldRocketJump: (partialRjsOrConfigs, plugIns) => false,
+  hackRjObject: rjObject => rjObject,
+
+  // Plugins in the core implementation
+  forgedPlugins: [],
 
   // When true remove all global side effect prone shit eehhehe joke
   // if U use Y head Y can use them i implement them for how?
   pure: false,
+}
+
+function noopPartialRj(rjImpl, config = {}) {
+  const TheNoopPartialRj = (runConfig, combinedExport, plugIns) =>
+    combinedExport
+  Object.defineProperty(TheNoopPartialRj, '__rjtype', {
+    value: $TYPE_RJ_PARTIAL,
+  })
+  Object.defineProperty(TheNoopPartialRj, '__rjimplementation', {
+    value: rjImpl.mark,
+  })
+  Object.defineProperty(TheNoopPartialRj, '__rjconfig', { value: config })
+  TheNoopPartialRj.__plugins = new Set()
+  return TheNoopPartialRj
 }
 
 // Forge a rocketjump in da S T E L L
@@ -55,6 +76,14 @@ export default function forgeRocketJump(rjImplArg) {
     ...DefaultRjImplementation,
     ...rjImplArg,
   })
+  if (typeof rjImpl.mark !== 'symbol') {
+    if (process.env.NODE_ENV !== 'production') {
+      throw new Error(
+        'You should have an unqie across the entir world super cool `make` Symbol.'
+      )
+    }
+    throw new Error()
+  }
   const pureRj = makeRj(rjImpl)
 
   // Long time a ago i belive in a world without side effects ...
@@ -90,9 +119,9 @@ export default function forgeRocketJump(rjImplArg) {
   }
 
   // Attach the RJ Implementation to rj constructor! Fuck YEAH!
-  Object.defineProperty(rj, '__rjimplementation', { value: rjImpl })
+  Object.defineProperty(rj, '__rjimplementation', { value: rjImpl.mark })
 
-  rj.plugin = makeRjPlugin(rjGlobals)
+  rj.plugin = makeRjPlugin(rjImpl, rjGlobals)
   rj.pure = pureRj
 
   // Build An Rj With defaults ehehhe
@@ -107,28 +136,34 @@ export default function forgeRocketJump(rjImplArg) {
   rj.removeNamespace = name => {
     delete rj.ns[name]
   }
-  rj.clearNamespaces = name => {
+  rj.clearNamespaces = () => {
     rj.ns = {}
   }
 
   return rj
 }
 
-function makeRjPlugin(rjGlobals) {
-  function rjPlugin(createPartialRj, plugInConfigArg) {
+function makeRjPlugin(rjImpl, rjGlobals) {
+  function rjPlugin(plugInConfigArg, createPartialRjArg) {
     let plugInConfig = null
     if (typeof plugInConfigArg === 'object' && plugInConfigArg !== null) {
       // Can't touch plugin config anymore
       plugInConfig = Object.freeze({ ...plugInConfigArg })
     }
+
+    let createPartialRj
+    if (typeof createPartialRjArg === 'function') {
+      createPartialRj = createPartialRjArg
+    } else {
+      createPartialRj = () => noopPartialRj(rjImpl)
+    }
+
     return function rjPluginBuilder(...args) {
       let partialRj
       if (
-        rjGlobals &&
         arguments.length === 0 &&
-        plugInConfig &&
-        plugInConfig.name &&
-        rjGlobals.pluginsDefaults[plugInConfig.name]
+        plugInConfig?.name &&
+        rjGlobals?.pluginsDefaults?.[plugInConfig.name]
       ) {
         // No args give use default global settings when got it
         partialRj = createPartialRj(
@@ -137,7 +172,20 @@ function makeRjPlugin(rjGlobals) {
       } else {
         partialRj = createPartialRj(...args)
       }
-      partialRj.__plugins = unionSet([plugInConfig], partialRj.__plugins)
+
+      if (
+        plugInConfig === null ||
+        // When the plug in config has only "name" as key avoid
+        // Set them into the plug-in chain
+        (
+          plugInConfig.name &&
+          Object.keys(plugInConfig).length === 1
+        )
+      ) {
+        partialRj.__plugins = new Set()
+      } else {
+        partialRj.__plugins = unionSet([plugInConfig], partialRj.__plugins)
+      }
       return partialRj
     }
   }
@@ -159,16 +207,14 @@ function makeRj(rjImpl) {
 
     // Derive the partial config from partial configuration
     // (default implementation skip other partialRjs)
-    const partialConfig = rjImpl.makePartialConfig(
-      partialRjsOrConfigs,
-      plugInsInTree
+    const partialConfig = Object.freeze(
+      rjImpl.makePartialConfig(partialRjsOrConfigs, plugInsInTree)
     )
 
     // Make the partial rj
     function PartialRj(
       extraConfig,
       extendExportArg,
-      runRjImpl = rjImpl,
       /*
         Take this rj tree:
         rj(
@@ -188,16 +234,18 @@ function makeRj(rjImpl) {
         ) -> Set(pluginA, pluginB, pluginX)
       )
       */
-      plugInsParent = new Set()
+      plugInsParentArg
     ) {
       // Take the extended exports seriusly only when came from rj
       let extendExport
+      let plugInsParent
       if (
         typeof extendExportArg === 'object' &&
         extendExportArg !== null &&
         extendExportArg.__rjtype === $TYPE_RJ_EXPORT
       ) {
         extendExport = extendExportArg
+        plugInsParent = plugInsParentArg
       }
 
       const plugIns = unionSet(plugInsParent, plugInsInTree)
@@ -209,8 +257,8 @@ function makeRj(rjImpl) {
       // Final configuration
       const finalConfig = mergeConfigs([partialConfig, extraConfig])
 
-      const runConfig = runRjImpl.makeRunConfig(finalConfig, plugIns)
-      const recursionRjs = runRjImpl.makeRecursionRjs(
+      const runConfig = rjImpl.makeRunConfig(finalConfig, plugIns)
+      const recursionRjs = rjImpl.makeRecursionRjs(
         partialRjsOrConfigs,
         extraConfig,
         isLastRjInvocation,
@@ -234,10 +282,10 @@ function makeRj(rjImpl) {
       const finalExport = recursionRjs.reduce((combinedExport, rjOrConfig) => {
         if (typeof rjOrConfig === 'function') {
           // Is a partial rj jump it!
-          return rjOrConfig(runConfig, combinedExport, runRjImpl, plugIns)
+          return rjOrConfig(runConfig, combinedExport, plugIns)
         } else {
           // Is a config ... run config + jump config = export
-          const newExport = runRjImpl.makeExport(
+          const newExport = rjImpl.makeExport(
             runConfig,
             rjOrConfig,
             combinedExport,
@@ -255,7 +303,7 @@ function makeRj(rjImpl) {
         // Mark as an Rj Object that can be runned into
         // rj-react
         // or mount on redux / saga
-        const rjObject = runRjImpl.finalizeExport(
+        const rjObject = rjImpl.finalizeExport(
           finalExport,
           runConfig,
           finalConfig,
@@ -265,8 +313,10 @@ function makeRj(rjImpl) {
         // Ship the last config in rj chain
         Object.defineProperty(rjObject, '__rjconfig', { value: partialConfig })
         // Attach the RJ Implementation to rj object! Fuck YEAH!
-        Object.defineProperty(rjObject, '__rjimplementation', { value: rjImpl })
-        return rjObject
+        Object.defineProperty(rjObject, '__rjimplementation', {
+          value: rjImpl.mark,
+        })
+        return rjImpl.hackRjObject(rjObject, plugIns)
       } else {
         return finalExport
       }
@@ -283,7 +333,9 @@ function makeRj(rjImpl) {
     Object.defineProperty(PartialRj, '__rjconfig', { value: partialConfig })
 
     // Attach the RJ Implementation to rj partial! Fuck YEAH!
-    Object.defineProperty(PartialRj, '__rjimplementation', { value: rjImpl })
+    Object.defineProperty(PartialRj, '__rjimplementation', {
+      value: rjImpl.mark,
+    })
 
     // All plugins in the partial rj tree
     PartialRj.__plugins = plugInsInTree
@@ -292,7 +344,7 @@ function makeRj(rjImpl) {
   }
 
   // Attach the RJ Implementation to rj constructor! Fuck YEAH!
-  Object.defineProperty(rj, '__rjimplementation', { value: rjImpl })
+  Object.defineProperty(rj, '__rjimplementation', { value: rjImpl.mark })
 
   return rj
 }

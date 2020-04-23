@@ -4,6 +4,7 @@ import { enhanceWithPlugins } from '../plugins'
 describe('rocketjump-core implementation', () => {
   it('should respect rj implementation', () => {
     const rj = forgeRocketJump({
+      mark: Symbol('rj'),
       makeExport: (_, config, rjExport = {}) => {
         let newExport = {}
         // Default foo values
@@ -65,6 +66,7 @@ describe('rocketjump-core implementation', () => {
       name: 'MAIN',
     }
     const rj = forgeRocketJump({
+      mark: Symbol('rj'),
       makeExport: (runConfig, config, rjExport = {}, plugIns) => {
         // console.log('~~~', plugIns)
         let newExport = { ...rjExport }
@@ -124,12 +126,6 @@ describe('rocketjump-core implementation', () => {
     // })
 
     const plugin1 = rj.plugin(
-      (age = 20) =>
-        rj({
-          foo: {
-            age,
-          },
-        }),
       {
         name: 'One',
         finalizeExport: (finalExport, _, config) => {
@@ -156,10 +152,19 @@ describe('rocketjump-core implementation', () => {
           }
           return betterExport
         },
-      }
+      },
+      // (age = 20) =>
+      //   rj({
+      //     foo: {
+      //       age,
+      //     },
+      //   }),
     )
 
     const plugin2 = rj.plugin(
+      {
+        name: 'Two',
+      },
       (gang = 23) =>
         rj.pure(plugin1(99), {
           babu: 'Budda',
@@ -167,21 +172,18 @@ describe('rocketjump-core implementation', () => {
             gang,
           },
         }),
-      {
-        name: 'Two',
-      }
     )
 
     const plugin3 = rj.plugin(
+      {
+        name: '##3',
+      },
       (g = 'Ciko') =>
         rj.pure(plugin2(1), {
           foo: {
             g,
           },
         }),
-      {
-        name: '##3',
-      }
     )
 
     // rj(
@@ -190,14 +192,14 @@ describe('rocketjump-core implementation', () => {
     //     effect: () => '/api/todos',
     //   }
     // )
-    rj.setPluginsDefaults({
-      One: ['KETY'],
-    })
+    // rj.setPluginsDefaults({
+    //   One: ['KETY'],
+    // })
 
     const RjObjectA = rj(
       // rj(rj({})),
       // rj(
-      // plugin1(),
+      plugin1(),
       // rj(
       //   rj({
       //     babu: 23,

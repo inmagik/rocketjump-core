@@ -5,8 +5,8 @@ describe('rocketjump-core', () => {
   it('should kick ass with recursion', () => {
     // Create the stupidest rj ever
     const rj = forgeRocketJump({
-      shouldRocketJump: () => false, // double invocation
-      makeRunConfig: () => null, // no run config
+      mark: Symbol('rj'),
+      pure: true,
       makeRecursionRjs: rjs => rjs, // don't touch configs
       makeExport: (_, config, rjExport = {}) => {
         return {
@@ -53,9 +53,8 @@ describe('rocketjump-core', () => {
 
     // Create the stupidest rj ever
     const rj = forgeRocketJump({
-      shouldRocketJump: () => false, // double invocation
-      makeRunConfig: () => null, // no run config
-      makeRecursionRjs: rjs => rjs, // don't touch configs
+      mark: Symbol('rj'),
+      pure: true,
       makeExport: (_, config, rjExport = {}) => ({
         message: exportMessage(rjExport.message, config.m),
       }),

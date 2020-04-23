@@ -1,4 +1,4 @@
-export default function createComputeState(computed) {
+export default function createComputeState(computed, extraSelectors = {}) {
   // No computed config provided
   if (!(typeof computed === 'object' && computed !== null)) {
     return null
@@ -21,14 +21,17 @@ export default function createComputeState(computed) {
 
     {
       ...
-      [selecortName]: '<key2Compute>',
+      [selectorName]: '<key2Compute>',
       ...
     }
   */
   return function computeState(state, selectors) {
     return computedKeys.reduce((computedState, selectorName) => {
       const keyName = computed[selectorName]
-      const selector = selectors[selectorName]
+      let selector = extraSelectors[selectorName]
+      if (selectors[selectorName]) {
+        selector = selectors[selectorName]
+      }
       if (selector === undefined) {
         throw new Error(
           `[rocketjump] you specified a non existing selector [${selectorName}] ` +

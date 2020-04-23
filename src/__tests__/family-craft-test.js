@@ -4,6 +4,7 @@ import { isPartialRj, isObjectRj } from '../types'
 describe('rocketjump-core crafter', () => {
   it('shoudl able to check generics types', () => {
     const rjGiova = forgeRocketJump({
+      mark: Symbol('giova'),
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
       makeRecursionRjs: rjs => rjs, // don't touch configs
@@ -23,6 +24,7 @@ describe('rocketjump-core crafter', () => {
   })
   it('shoudl able to check generics family types', () => {
     const rjGiova = forgeRocketJump({
+      mark: Symbol('giova'),
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
       makeRecursionRjs: rjs => rjs, // don't touch configs
@@ -33,6 +35,7 @@ describe('rocketjump-core crafter', () => {
     })
 
     const rjSkaffo = forgeRocketJump({
+      mark: Symbol('skaffo'),
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
       makeRecursionRjs: rjs => rjs, // don't touch configs
