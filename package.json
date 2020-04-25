@@ -1,7 +1,7 @@
 {
   "name": "rocketjump-core",
   "sideEffects": false,
-  "version": "0.0.0-experimental-c1716",
+  "version": "0.0.0-experimental-c1717",
   "description": "The core of rocketjump",
   "main": "./lib/index.cjs.js",
   "module": "./lib/index.esm.js",
@@ -33,10 +33,11 @@
     "react": "^16.8.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.5",
     "babel-eslint": "10.x",
-    "babel-jest": "^24.9.0",
+    "babel-jest": "^25.4.0",
+    "babel-plugin-macros": "^2.8.0",
     "eslint": "6.x",
     "eslint-config-react-app": "^5.0.1",
     "eslint-plugin-flowtype": "3.x",
@@ -44,10 +45,12 @@
     "eslint-plugin-jsx-a11y": "6.x",
     "eslint-plugin-react": "7.x",
     "eslint-plugin-react-hooks": "1.x",
-    "jest": "^24.9.0",
+    "jest": "^25.4.0",
     "prettier": "^1.18.2",
-    "rimraf": "^3.0.0",
-    "rollup": "^1.20.3",
-    "rollup-plugin-babel": "^4.3.3"
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.7.2",
+    "rollup-plugin-babel": "^4.4.0"
   }
 }

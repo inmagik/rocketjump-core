@@ -218,7 +218,6 @@ describe('rocketjump-core implementation', () => {
         // babu: 'Super'
       }
     )()
-    console.log('U', RjObjectA)
     // console.log(RjObjectA)
     // console.log(RjObjectA.plugins)
     // expect(RjObjectA).toEqual({
