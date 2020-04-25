@@ -1,3 +1,5 @@
+import blamer from '../blamer.macro'
+
 export default function createComputeState(computed, extraSelectors = {}) {
   // No computed config provided
   if (!(typeof computed === 'object' && computed !== null)) {
@@ -33,7 +35,8 @@ export default function createComputeState(computed, extraSelectors = {}) {
         selector = selectors[selectorName]
       }
       if (selector === undefined) {
-        throw new Error(
+        blamer(
+          '[rj-core]',
           `[rocketjump] you specified a non existing selector [${selectorName}] ` +
             `check your computed config.`
         )

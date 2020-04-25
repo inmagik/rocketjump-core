@@ -1,3 +1,4 @@
+import blamer from '../blamer.macro'
 import { $TYPE_RJ_EXPORT, $TYPE_RJ_PARTIAL, $TYPE_RJ_OBJECT } from './internals'
 import { mergeConfigs } from './utils'
 import { isPartialRj } from './types'
@@ -29,21 +30,17 @@ const DefaultRjImplementation = {
   ) => partialRjsOrConfigs,
 
   makeExport: (runConfig, rjOrConfig, combinedExport, plugIns) => {
-    if (process.env.NODE_ENV !== 'production') {
-      throw new Error(
-        'You should implement `makeExport` in order to forge a rocketjump!'
-      )
-    }
-    throw new Error()
+    blamer(
+      '[rj-core-forge]',
+      'You should implement `makeExport` in order to forge a rocketjump!'
+    )
   },
 
   finalizeExport: (finalExport, runConfig, finalConfig, plugIns) => {
-    if (process.env.NODE_ENV !== 'production') {
-      throw new Error(
-        'You should implement `finalizeExport` in order to forge a rocketjump!'
-      )
-    }
-    throw new Error()
+    blamer(
+      '[rj-core-forge]',
+      'You should implement `finalizeExport` in order to forge a rocketjump!'
+    )
   },
 
   hackRjObject: rjObject => rjObject,
@@ -76,14 +73,20 @@ export default function forgeRocketJump(rjImplArg) {
     ...DefaultRjImplementation,
     ...rjImplArg,
   })
-  if (typeof rjImpl.mark !== 'symbol') {
-    if (process.env.NODE_ENV !== 'production') {
+
+  if (process.env.NODE_ENV === 'production') {
+    // NOTE avoid typeof symbol in prod cause can't be polyfill
+    if (!rjImpl.mark) {
+      throw new Error('[rj-core-forge]')
+    }
+  } else {
+    if (typeof rjImpl.mark !== 'symbol') {
       throw new Error(
         'You should have an unqie across the entir world super cool `make` Symbol.'
       )
     }
-    throw new Error()
   }
+
   const pureRj = makeRj(rjImpl)
 
   // Long time a ago i belive in a world without side effects ...
@@ -177,10 +180,7 @@ function makeRjPlugin(rjImpl, rjGlobals) {
         plugInConfig === null ||
         // When the plug in config has only "name" as key avoid
         // Set them into the plug-in chain
-        (
-          plugInConfig.name &&
-          Object.keys(plugInConfig).length === 1
-        )
+        (plugInConfig.name && Object.keys(plugInConfig).length === 1)
       ) {
         partialRj.__plugins = new Set()
       } else {

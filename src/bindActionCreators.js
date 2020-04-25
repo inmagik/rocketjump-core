@@ -1,5 +1,10 @@
+import blamer from '../blamer.macro'
 import { isEffectAction } from './actions'
-import { shouldRunDeps, getMetaFromDeps, getRunValuesFromDeps } from './deps/funcs'
+import {
+  shouldRunDeps,
+  getMetaFromDeps,
+  getRunValuesFromDeps,
+} from './deps/funcs'
 
 /**
  * Builder pattern implementation for action creators calls
@@ -126,8 +131,9 @@ function attachBuilder(boundActionCreator, actionCreator, dispatch) {
     return new Builder(actionCreator, dispatch).withMeta(meta)
   }
   boundActionCreator.run = () => {
-    throw new Error(
-      'In order to do a plain call without meta, onSuccess or onFailure, just invoke the action creator, use the run method only when you leverage the builder functionalities'
+    blamer(
+      '[rj-core-run-action]',
+      '[rocketjump-core] Action creator call In order to do a plain call without meta, onSuccess or onFailure, just invoke the action creator, use the run method only when you leverage the builder functionalities'
     )
   }
   boundActionCreator.asPromise = (...args) => {
