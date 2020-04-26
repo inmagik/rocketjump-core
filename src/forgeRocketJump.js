@@ -1,5 +1,10 @@
 import blamer from '../blamer.macro'
-import { $TYPE_RJ_EXPORT, $TYPE_RJ_PARTIAL, $TYPE_RJ_OBJECT } from './internals'
+import {
+  $TYPE_RJ_EXPORT,
+  $TYPE_RJ_PARTIAL,
+  $TYPE_RJ_OBJECT,
+  $TYPE_RJ,
+} from './internals'
 import { mergeConfigs } from './utils'
 import { isPartialRj } from './types'
 
@@ -53,17 +58,40 @@ const DefaultRjImplementation = {
   enableGlobals: false,
 }
 
+function markAsRj(baseFn, rjImpl) {
+  Object.defineProperty(baseFn, '__rjtype', {
+    value: $TYPE_RJ,
+  })
+  Object.defineProperty(baseFn, '__rjimplementation', {
+    value: rjImpl.mark,
+  })
+}
+
+function markAsPartialRj(baseFn, rjImpl, config, plugIns = new Set()) {
+  Object.defineProperty(baseFn, '__rjtype', {
+    value: $TYPE_RJ_PARTIAL,
+  })
+  Object.defineProperty(baseFn, '__rjimplementation', {
+    value: rjImpl.mark,
+  })
+  Object.defineProperty(baseFn, '__rjconfig', { value: config })
+  baseFn.__plugins = plugIns
+}
+
+function markAsRjObject(baseFn, rjImpl, config) {
+  Object.defineProperty(baseFn, '__rjtype', {
+    value: $TYPE_RJ_OBJECT,
+  })
+  Object.defineProperty(baseFn, '__rjimplementation', {
+    value: rjImpl.mark,
+  })
+  Object.defineProperty(baseFn, '__rjconfig', { value: config })
+}
+
 function noopPartialRj(rjImpl, config = {}) {
   const TheNoopPartialRj = (runConfig, combinedExport, plugIns) =>
     combinedExport
-  Object.defineProperty(TheNoopPartialRj, '__rjtype', {
-    value: $TYPE_RJ_PARTIAL,
-  })
-  Object.defineProperty(TheNoopPartialRj, '__rjimplementation', {
-    value: rjImpl.mark,
-  })
-  Object.defineProperty(TheNoopPartialRj, '__rjconfig', { value: config })
-  TheNoopPartialRj.__plugins = new Set()
+  markAsPartialRj(TheNoopPartialRj, rjImpl, config)
   return TheNoopPartialRj
 }
 
@@ -94,15 +122,20 @@ export default function forgeRocketJump(rjImplArg) {
 
     const rj = (...args) => pureRj(...args)
 
-    // Attach the RJ Implementation to rj constructor! Fuck YEAH!
-    Object.defineProperty(rj, '__rjimplementation', { value: rjImpl.mark })
-
     // Always attach a pure rj builder to compatibilty \w globals style
     rj.pure = pureRj
 
     // Plugins!
     rj.plugin = makeRjPlugin(rjImpl)
 
+    // Build An Rj With defaults
+    rj.build = (...rjs) => {
+      const newRj = (...callRjs) => pureRj(...rjs, ...callRjs)
+      markAsRj(newRj, rjImpl)
+      return newRj
+    }
+
+    markAsRj(rj, rjImpl)
     return rj
   }
 
@@ -115,6 +148,19 @@ export default function forgeRocketJump(rjImplArg) {
   // Wrap pure rj and prepend global base rjs
   const rj = (...partialRjsOrConfigs) => {
     return pureRj(...rjGlobals.rjs, ...partialRjsOrConfigs)
+  }
+
+  // Plugins!
+  rj.plugin = makeRjPlugin(rjImpl, rjGlobals)
+
+  // rj without globals
+  rj.pure = pureRj
+
+  // Build An Rj With defaults
+  rj.build = (...rjs) => {
+    const newRj = (...callRjs) => pureRj(...rjs, ...callRjs)
+    markAsRj(newRj, rjImpl)
+    return newRj
   }
 
   rj.clearGlobalRjs = () => {
@@ -131,20 +177,13 @@ export default function forgeRocketJump(rjImplArg) {
     rjGlobals.pluginsDefaults = pluginsDefaults
   }
 
-  // Attach the RJ Implementation to rj constructor! Fuck YEAH!
-  Object.defineProperty(rj, '__rjimplementation', { value: rjImpl.mark })
-
-  rj.plugin = makeRjPlugin(rjImpl, rjGlobals)
-  rj.pure = pureRj
-
-  // Build An Rj With defaults ehehhe
-  rj.build = (...rjs) => (...callRjs) => pureRj(...rjs, ...callRjs)
-
   // Namespaces!!!
   rj.ns = {}
 
   rj.addNamespace = (name, ...rjs) => {
-    rj.ns[name] = (...callRjs) => pureRj(...rjs, ...callRjs)
+    const newRj = (...callRjs) => pureRj(...rjs, ...callRjs)
+    markAsRj(newRj, rjImpl)
+    rj.ns[name] = newRj
   }
   rj.removeNamespace = (name) => {
     delete rj.ns[name]
@@ -153,6 +192,7 @@ export default function forgeRocketJump(rjImplArg) {
     rj.ns = {}
   }
 
+  markAsRj(rj, rjImpl)
   return rj
 }
 
@@ -319,13 +359,7 @@ function makeRj(rjImpl) {
           finalConfig,
           plugIns
         )
-        Object.defineProperty(rjObject, '__rjtype', { value: $TYPE_RJ_OBJECT })
-        // Ship the last config in rj chain
-        Object.defineProperty(rjObject, '__rjconfig', { value: partialConfig })
-        // Attach the RJ Implementation to rj object! Fuck YEAH!
-        Object.defineProperty(rjObject, '__rjimplementation', {
-          value: rjImpl.mark,
-        })
+        markAsRjObject(rjObject, rjImpl, partialConfig)
         return rjImpl.hackRjObject(rjObject, plugIns)
       } else {
         return finalExport
@@ -338,23 +372,12 @@ function makeRj(rjImpl) {
     }
 
     // Mark the partialRj
-    Object.defineProperty(PartialRj, '__rjtype', { value: $TYPE_RJ_PARTIAL })
-
-    Object.defineProperty(PartialRj, '__rjconfig', { value: partialConfig })
-
-    // Attach the RJ Implementation to rj partial! Fuck YEAH!
-    Object.defineProperty(PartialRj, '__rjimplementation', {
-      value: rjImpl.mark,
-    })
-
-    // All plugins in the partial rj tree
-    PartialRj.__plugins = plugInsInTree
+    markAsPartialRj(PartialRj, rjImpl, partialConfig, plugInsInTree)
 
     return PartialRj
   }
 
-  // Attach the RJ Implementation to rj constructor! Fuck YEAH!
-  Object.defineProperty(rj, '__rjimplementation', { value: rjImpl.mark })
-
+  // Mark Rj Fn
+  markAsRj(rj, rjImpl)
   return rj
 }

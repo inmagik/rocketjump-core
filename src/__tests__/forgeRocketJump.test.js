@@ -1,7 +1,7 @@
 import forgeRocketJump from '../forgeRocketJump'
 import { makeExportValue, squashExportValue } from '../exportValue'
 import { enhanceWithPlugins } from '../plugins'
-import { isPartialRj, isObjectRj } from '../types'
+import { isPartialRj, isObjectRj, isRj } from '../types'
 
 describe('forgeRocketJump', () => {
   it("can't forge an rj without a cool mark", () => {
@@ -113,6 +113,9 @@ describe('forgeRocketJump', () => {
     expect(isObjectRj(rjGo({ jump: true }))).toBe(true)
 
     expect(isPartialRj(rjGo({ jumpx: true }))).toBe(true)
+
+    expect(isRj(rjGo)).toEqual(true)
+    expect(isRj(rjGo.pure)).toEqual(true)
   })
 
   it('should give the abilty to lazy compose export value and squash them from RjObject', () => {
@@ -562,5 +565,11 @@ describe('forgeRocketJump', () => {
     expect(rj({ gang: 23 })).toEqual({ gang: 23, giova: true })
 
     expect(rj.pure({ gang: 23 })).toEqual({ gang: 23 })
+
+    rj.addNamespace('gang', rj.pure({ ola: 23 }))
+    expect(isRj(rj.ns.gang)).toBe(true)
+
+    const buildedRj = rj.build(rj({ blue: true }))
+    expect(isRj(buildedRj)).toBe(true)
   })
 })

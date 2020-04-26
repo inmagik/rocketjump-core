@@ -1,8 +1,8 @@
 import forgeRocketJump from '../forgeRocketJump'
-import { isPartialRj, isObjectRj } from '../types'
+import { isPartialRj, isObjectRj, isRj } from '../types'
 
 describe('rocketjump types', () => {
-  it('shoudl be generic Partial and Object', () => {
+  it('shoudl be generic Rj, Partial and Object', () => {
     const rjGiova = forgeRocketJump({
       mark: Symbol('giova'),
       shouldRocketJump: () => false, // double invocation
@@ -17,12 +17,14 @@ describe('rocketjump types', () => {
     const PartialRj = rjGiova()
     expect(isPartialRj(PartialRj)).toBe(true)
     expect(isObjectRj(PartialRj)).toBe(false)
+    expect(isRj(rjGiova)).toBe(true)
+    expect(isRj(PartialRj)).toBe(false)
 
     const RjStateObject = rjGiova()()
     expect(isPartialRj(RjStateObject)).toBe(false)
     expect(isObjectRj(RjStateObject)).toBe(true)
   })
-  it('should be Partial and Object target to a specific family', () => {
+  it('should be Partial and Rj, Object target to a specific family', () => {
     const rjGiova = forgeRocketJump({
       mark: Symbol('giova'),
       shouldRocketJump: () => false, // double invocation
@@ -44,6 +46,9 @@ describe('rocketjump types', () => {
       }),
       finalizeExport: (rjExport) => ({ ...rjExport }), // don't hack config
     })
+
+    expect(isRj(rjGiova)).toBe(true)
+    expect(isRj(rjSkaffo)).toBe(true)
 
     const PartialRj = rjGiova()
     expect(isPartialRj(PartialRj)).toBe(true)

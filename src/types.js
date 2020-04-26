@@ -1,4 +1,8 @@
-import { $TYPE_RJ_PARTIAL, $TYPE_RJ_OBJECT } from './internals'
+import { $TYPE_RJ_PARTIAL, $TYPE_RJ_OBJECT, $TYPE_RJ } from './internals'
+
+export function isRj(rj) {
+  return typeof rj === 'function' && rj.__rjtype === $TYPE_RJ
+}
 
 export function isPartialRj(partialRj, rj) {
   if (typeof partialRj === 'function') {
