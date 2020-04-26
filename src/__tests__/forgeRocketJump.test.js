@@ -520,4 +520,47 @@ describe('forgeRocketJump', () => {
       override: 'G E M E L L O',
     })
   })
+
+  it('should forge rj with gloabs when specified', () => {
+    let rj = forgeRocketJump({
+      mark: Symbol('P'),
+      makeExport: (_, config, rjExport = {}) => ({
+        ...rjExport,
+        ...config,
+      }),
+      finalizeExport: (rjExport = {}) => ({ ...rjExport }),
+      shouldRocketJump: () => true,
+    })
+
+    expect(rj({ gang: 23 })).toEqual({ gang: 23 })
+
+    expect(rj.pure({ gang: 23 })).toEqual({ gang: 23 })
+
+    expect(rj.setGlobalRjs).toBe(undefined)
+
+    rj = forgeRocketJump({
+      mark: Symbol('G'),
+      enableGlobals: true,
+      makeExport: (_, config, rjExport = {}) => ({
+        ...rjExport,
+        ...config,
+      }),
+      finalizeExport: (rjExport = {}) => ({ ...rjExport }),
+      shouldRocketJump: (objs) => objs.some((o) => o.gang),
+    })
+
+    expect(rj({ gang: 23 })).toEqual({ gang: 23 })
+
+    expect(rj.pure({ gang: 23 })).toEqual({ gang: 23 })
+
+    rj.setGlobalRjs(
+      rj({
+        giova: true,
+      })
+    )
+
+    expect(rj({ gang: 23 })).toEqual({ gang: 23, giova: true })
+
+    expect(rj.pure({ gang: 23 })).toEqual({ gang: 23 })
+  })
 })
