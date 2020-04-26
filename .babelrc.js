@@ -12,8 +12,5 @@ module.exports = {
       },
     ],
   ],
-  plugins: [
-    'babel-plugin-macros',
-    ['@babel/plugin-transform-runtime', { useESModules: true }],
-  ],
+  plugins: ['babel-plugin-macros'],
 }

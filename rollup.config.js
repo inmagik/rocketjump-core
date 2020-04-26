@@ -33,6 +33,14 @@ export default ['esm', 'cjs'].map((format) => ({
     babel({
       runtimeHelpers: true,
       exclude: 'node_modules/**',
+      plugins: [
+        [
+          '@babel/plugin-transform-runtime',
+          {
+            useESModules: format === 'esm',
+          },
+        ],
+      ],
     }),
   ],
 }))
