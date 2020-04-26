@@ -3,5 +3,5 @@
   "sideEffects": false,
   "private": true,
   "main": "../lib/utils.cjs.js",
-  "module": "../lib/utils.esm.js"
+  "module": "../lib/utils.es.js"
 }
