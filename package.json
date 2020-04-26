@@ -1,7 +1,7 @@
 {
   "name": "rocketjump-core",
   "sideEffects": false,
-  "version": "0.0.0-experimental-c1718",
+  "version": "0.0.0-experimental-c1719",
   "description": "The core of rocketjump",
   "main": "./lib/index.cjs.js",
   "module": "./lib/index.es.js",
@@ -12,7 +12,7 @@
     "Alberto Osio <osioalberto@gmail.com>"
   ],
   "scripts": {
-    "format": "prettier --no-semi --single-quote --trailing-comma es5 --write \"{src,__{tests,mocks}__}/**/*.js\"",
+    "format": "prettier --write \"**/*.js\"",
     "prebuild": "rimraf lib",
     "build": "rollup -c",
     "build:watch": "rollup -c -w",
@@ -29,28 +29,39 @@
     "rj",
     "rocketjump"
   ],
+  "dependencies": {
+    "@babel/runtime": "^7.9.2"
+  },
   "peerDependencies": {
     "react": "^16.8.0"
   },
   "devDependencies": {
     "@babel/core": "^7.9.0",
+    "@babel/plugin-transform-runtime": "^7.9.0",
     "@babel/preset-env": "^7.9.5",
     "babel-eslint": "10.x",
     "babel-jest": "^25.4.0",
     "babel-plugin-macros": "^2.8.0",
     "eslint": "6.x",
-    "eslint-config-react-app": "^5.0.1",
-    "eslint-plugin-flowtype": "3.x",
+    "eslint-config-react-app": "^5.2.1",
+    "eslint-plugin-flowtype": "4.x",
     "eslint-plugin-import": "2.x",
     "eslint-plugin-jsx-a11y": "6.x",
     "eslint-plugin-react": "7.x",
-    "eslint-plugin-react-hooks": "1.x",
+    "eslint-plugin-react-hooks": "2.x",
+    "husky": "^4.2.5",
     "jest": "^25.4.0",
-    "prettier": "^1.18.2",
+    "prettier": "^2.0.5",
+    "pretty-quick": "^2.0.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "rimraf": "^3.0.2",
     "rollup": "^2.7.2",
     "rollup-plugin-babel": "^4.4.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged --pattern \"**/*.js\""
+    }
   }
 }

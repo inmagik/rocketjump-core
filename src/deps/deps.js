@@ -13,19 +13,19 @@ import {
 export const withMeta = (a, meta) => WithMetaDeBp(a, meta)
 
 // Add meta only on mount
-export const withMetaOnMount = meta => WithMetaOnMountDeBp(meta)
+export const withMetaOnMount = (meta) => WithMetaOnMountDeBp(meta)
 
 // Add always meta
-export const withAlwaysMeta = meta => WithAlwaysMeta(meta)
+export const withAlwaysMeta = (meta) => WithAlwaysMeta(meta)
 
 // Maybe run based on value
-export const maybe = a => (getDepValue(a) ? RunDeBp(a) : NotRunDeBp(a))
+export const maybe = (a) => (getDepValue(a) ? RunDeBp(a) : NotRunDeBp(a))
 
 // Make all deps a maybe value!
 export const allMaybe = (...args) => args.map(maybe)
 
 // maybe if value is null
-export const maybeNull = a =>
+export const maybeNull = (a) =>
   getDepValue(a) === null ? NotRunDeBp(a) : RunDeBp(a)
 
 // Make all deps maybe null

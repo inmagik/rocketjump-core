@@ -23,7 +23,7 @@ class Builder {
     if (typeof meta === 'function') {
       this.metaTransforms.push(meta)
     } else {
-      this.metaTransforms.push(oldMeta => ({
+      this.metaTransforms.push((oldMeta) => ({
         ...oldMeta,
         ...meta,
       }))
@@ -121,13 +121,13 @@ class Builder {
  *  in case of bad invocation
  */
 function attachBuilder(boundActionCreator, actionCreator, dispatch) {
-  boundActionCreator.onSuccess = callback => {
+  boundActionCreator.onSuccess = (callback) => {
     return new Builder(actionCreator, dispatch).onSuccess(callback)
   }
-  boundActionCreator.onFailure = callback => {
+  boundActionCreator.onFailure = (callback) => {
     return new Builder(actionCreator, dispatch).onFailure(callback)
   }
-  boundActionCreator.withMeta = meta => {
+  boundActionCreator.withMeta = (meta) => {
     return new Builder(actionCreator, dispatch).withMeta(meta)
   }
   boundActionCreator.run = () => {

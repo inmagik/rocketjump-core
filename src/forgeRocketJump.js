@@ -5,7 +5,7 @@ import { isPartialRj } from './types'
 
 function unionSet(setA, setB) {
   let _union = new Set(setA)
-  setB.forEach(elem => _union.add(elem))
+  setB.forEach((elem) => _union.add(elem))
   return _union
 }
 
@@ -43,14 +43,14 @@ const DefaultRjImplementation = {
     )
   },
 
-  hackRjObject: rjObject => rjObject,
+  hackRjObject: (rjObject) => rjObject,
 
   // Plugins in the core implementation
   forgedPlugins: [],
 
   // When true remove all global side effect prone shit eehhehe joke
   // if U use Y head Y can use them i implement them for how?
-  pure: false,
+  enableGlobals: false,
 }
 
 function noopPartialRj(rjImpl, config = {}) {
@@ -89,10 +89,14 @@ export default function forgeRocketJump(rjImplArg) {
 
   const pureRj = makeRj(rjImpl)
 
-  // Long time a ago i belive in a world without side effects ...
-  // this flag bring back this world Default: False
-  if (rjImpl.pure) {
-    pureRj.plugin = makeRjPlugin()
+  if (!rjImpl.enableGlobals) {
+    // Long time a ago i belive in a world without side effects ...
+
+    // function rj(...args) {
+
+    // }
+
+    pureRj.plugin = makeRjPlugin(rjImpl)
     return pureRj
   }
 
@@ -117,7 +121,7 @@ export default function forgeRocketJump(rjImplArg) {
   rj.clearPluginsDefaults = () => {
     rjGlobals.pluginsDefaults = {}
   }
-  rj.setPluginsDefaults = pluginsDefaults => {
+  rj.setPluginsDefaults = (pluginsDefaults) => {
     rjGlobals.pluginsDefaults = pluginsDefaults
   }
 
@@ -136,7 +140,7 @@ export default function forgeRocketJump(rjImplArg) {
   rj.addNamespace = (name, ...rjs) => {
     rj.ns[name] = (...callRjs) => pureRj(...rjs, ...callRjs)
   }
-  rj.removeNamespace = name => {
+  rj.removeNamespace = (name) => {
     delete rj.ns[name]
   }
   rj.clearNamespaces = () => {
@@ -200,7 +204,7 @@ function makeRj(rjImpl) {
     // rj( plugiInA(), plugInB()  )
     const plugInsInTree = partialRjsOrConfigs.reduce((resultSet, a) => {
       if (isPartialRj(a)) {
-        a.__plugins.forEach(plugin => resultSet.add(plugin))
+        a.__plugins.forEach((plugin) => resultSet.add(plugin))
       }
       return resultSet
     }, new Set(rjImpl.forgedPlugins))

@@ -44,7 +44,7 @@ class DeBp {
 
 const ifDep = (a, cbTrue, cbFalse) => (a instanceof DeBp ? cbTrue() : cbFalse())
 
-const RunDeBp = a =>
+const RunDeBp = (a) =>
   ifDep(
     a,
     () =>
@@ -56,7 +56,7 @@ const RunDeBp = a =>
       }),
     () => new DeBp(a, { shouldRun: true })
   )
-const NotRunDeBp = a =>
+const NotRunDeBp = (a) =>
   ifDep(
     a,
     () =>
@@ -78,7 +78,7 @@ const WithMetaDeBp = (a, meta) =>
       }),
     () => new DeBp(a, { shouldRun: true, meta })
   )
-const WithMetaOnMountDeBp = meta =>
+const WithMetaOnMountDeBp = (meta) =>
   new DeBp(true, {
     shouldRun: true,
     meta,
@@ -86,7 +86,7 @@ const WithMetaOnMountDeBp = meta =>
     skipRunValue: true,
   })
 
-const WithAlwaysMeta = meta =>
+const WithAlwaysMeta = (meta) =>
   new DeBp(true, {
     shouldRun: true,
     meta,
@@ -94,7 +94,7 @@ const WithAlwaysMeta = meta =>
     skipRunValue: true,
   })
 
-const getDepValue = a =>
+const getDepValue = (a) =>
   ifDep(
     a,
     () => a.getValue(),
@@ -108,7 +108,7 @@ const getDepMeta = (a, onMount) =>
     () => undefined
   )
 
-const shouldDepRun = a =>
+const shouldDepRun = (a) =>
   ifDep(
     a,
     () => a.shouldRun(),
@@ -169,7 +169,7 @@ export function getRunValuesFromDeps(args) {
 
 // Should run ma values?
 export function shouldRunDeps(args) {
-  return !args.some(a => !shouldDepRun(a))
+  return !args.some((a) => !shouldDepRun(a))
 }
 
 // ~D3BpS~
@@ -178,19 +178,19 @@ export function shouldRunDeps(args) {
 export const withMeta = (a, meta) => WithMetaDeBp(a, meta)
 
 // Add meta only on mount
-export const withMetaOnMount = meta => WithMetaOnMountDeBp(meta)
+export const withMetaOnMount = (meta) => WithMetaOnMountDeBp(meta)
 
 // Add always meta
-export const withAlwaysMeta = meta => WithAlwaysMeta(meta)
+export const withAlwaysMeta = (meta) => WithAlwaysMeta(meta)
 
 // Maybe run based on value
-export const maybe = a => (getDepValue(a) ? RunDeBp(a) : NotRunDeBp(a))
+export const maybe = (a) => (getDepValue(a) ? RunDeBp(a) : NotRunDeBp(a))
 
 // Make all deps a maybe value!
 export const allMaybe = (...args) => args.map(maybe)
 
 // maybe if value is null
-export const maybeNull = a =>
+export const maybeNull = (a) =>
   getDepValue(a) === null ? NotRunDeBp(a) : RunDeBp(a)
 
 // Make all deps maybe null

@@ -24,23 +24,16 @@ describe('deps', () => {
       getRunValuesFromDeps([23, 99, { name: 'Giova' }, ['Un', 'Dos', 'Tres']])
     ).toEqual([23, 99, { name: 'Giova' }, ['Un', 'Dos', 'Tres']])
 
-    expect(getRunValuesFromDeps([
-      23,
-      maybe(false),
-      maybeGet({ name: 'GioVa' }, 'name'),
-      maybeGet(0, 'name')
-    ])).toEqual([
-      23,
-      false,
-      'GioVa',
-      0
-    ])
+    expect(
+      getRunValuesFromDeps([
+        23,
+        maybe(false),
+        maybeGet({ name: 'GioVa' }, 'name'),
+        maybeGet(0, 'name'),
+      ])
+    ).toEqual([23, false, 'GioVa', 0])
 
-    expect(getRunValuesFromDeps([
-      maybe(maybe(maybe(maybe(23)))),
-    ])).toEqual([
-      23
-    ])
+    expect(getRunValuesFromDeps([maybe(maybe(maybe(maybe(23))))])).toEqual([23])
   })
 
   it('should determinate if can run', () => {
@@ -48,15 +41,15 @@ describe('deps', () => {
       shouldRunDeps([23, 99, { name: 'Giova' }, ['Un', 'Dos', 'Tres']])
     ).toEqual(true)
 
-    expect(shouldRunDeps([
-      23,
-      maybe(false),
-      maybeGet({ name: 'GioVa' }, 'name'),
-      maybeGet(0, 'name')
-    ])).toEqual(false)
+    expect(
+      shouldRunDeps([
+        23,
+        maybe(false),
+        maybeGet({ name: 'GioVa' }, 'name'),
+        maybeGet(0, 'name'),
+      ])
+    ).toEqual(false)
 
-    expect(shouldRunDeps([
-      maybe(maybe(maybe(maybe(23)))),
-    ])).toEqual(true)
+    expect(shouldRunDeps([maybe(maybe(maybe(maybe(23))))])).toEqual(true)
   })
 })

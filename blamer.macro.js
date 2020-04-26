@@ -9,7 +9,7 @@ function blamer({ babel: { types: t }, references: { default: paths } }) {
     t.identifier('NODE_ENV')
   )
 
-  paths.forEach(nodePath => {
+  paths.forEach((nodePath) => {
     const blamerCallArgs = nodePath.parentPath.container.expression.arguments
     if (blamerCallArgs.length !== 2) {
       throw new MacroError('Sorry, blamer macro needs two params')

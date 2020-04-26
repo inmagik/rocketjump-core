@@ -65,55 +65,48 @@ describe('rocketjump-core implementation', () => {
     const MAIN = {
       name: 'MAIN',
     }
-    const rj = forgeRocketJump({
-      mark: Symbol('rj'),
-      makeExport: (runConfig, config, rjExport = {}, plugIns) => {
-        // console.log('~~~', plugIns)
-        let newExport = { ...rjExport }
-        // Default foo values
-        newExport.foo = rjExport.foo || {
-          name: 'GioVa',
-        }
-        // Extend foo
-        newExport.foo = {
-          ...newExport.foo,
-          ...(config || {}).foo,
-        }
+    const rj = forgeRocketJump(
+      {
+        mark: Symbol('rj'),
+        makeExport: (runConfig, config, rjExport = {}, plugIns) => {
+          // console.log('~~~', plugIns)
+          let newExport = { ...rjExport }
+          // Default foo values
+          newExport.foo = rjExport.foo || {
+            name: 'GioVa',
+          }
+          // Extend foo
+          newExport.foo = {
+            ...newExport.foo,
+            ...(config || {}).foo,
+          }
 
-        return enhanceWithPlugins(
-          plugIns,
-          newExport,
-          'makeExport',
-          [
+          return enhanceWithPlugins(plugIns, newExport, 'makeExport', [
             runConfig,
             config,
-          ]
-        )
-      },
-      finalizeExport: (rjExportArg, runConfig, finalConfig, plugIns) => {
-        const rjExport = enhanceWithPlugins(
-          plugIns,
-          rjExportArg,
-          'hackExportBeforeFinalize'
-        )
-        let finalExport = { ...rjExport }
-        if (finalExport.foo.king === 'giova') {
-          finalExport = {
-            KING: '$$',
-            ...finalExport,
+          ])
+        },
+        finalizeExport: (rjExportArg, runConfig, finalConfig, plugIns) => {
+          const rjExport = enhanceWithPlugins(
+            plugIns,
+            rjExportArg,
+            'hackExportBeforeFinalize'
+          )
+          let finalExport = { ...rjExport }
+          if (finalExport.foo.king === 'giova') {
+            finalExport = {
+              KING: '$$',
+              ...finalExport,
+            }
           }
-        }
-        return enhanceWithPlugins(
-          plugIns,
-          finalExport,
-          'finalizeExport',
-          [
+          return enhanceWithPlugins(plugIns, finalExport, 'finalizeExport', [
             runConfig,
             finalConfig,
-          ]
-        )
+          ])
+        },
       },
-    }, [MAIN])
+      [MAIN]
+    )
 
     // rj.setGlobals(
     //   rjPlugin(),
@@ -134,7 +127,7 @@ describe('rocketjump-core implementation', () => {
             override: 'G E M E L L O',
           }
         },
-        hackExportBeforeFinalize: finalExport => {
+        hackExportBeforeFinalize: (finalExport) => {
           return {
             ...finalExport,
             foo: {
@@ -152,7 +145,7 @@ describe('rocketjump-core implementation', () => {
           }
           return betterExport
         },
-      },
+      }
       // (age = 20) =>
       //   rj({
       //     foo: {
@@ -171,7 +164,7 @@ describe('rocketjump-core implementation', () => {
           foo: {
             gang,
           },
-        }),
+        })
     )
 
     const plugin3 = rj.plugin(
@@ -183,7 +176,7 @@ describe('rocketjump-core implementation', () => {
           foo: {
             g,
           },
-        }),
+        })
     )
 
     // rj(

@@ -4,9 +4,10 @@ import { getDepMeta, getDepValue, ifDep, shouldDepRun } from './core'
 // ([...args], prevValuesFromRunValues) => Meta({})
 export function getMetaFromDeps(argsWithDeps, oldValues = null, onMount) {
   if (oldValues === null) {
-    const useOnMount = onMount === undefined
-      ? true // On mount (unless forced)
-      : onMount
+    const useOnMount =
+      onMount === undefined
+        ? true // On mount (unless forced)
+        : onMount
     // All changes
     return argsWithDeps.reduce(
       (meta, arg, i) => ({
@@ -16,9 +17,10 @@ export function getMetaFromDeps(argsWithDeps, oldValues = null, onMount) {
       {}
     )
   }
-  const useOnMount = onMount === undefined
-    ? false // Not on mount (unless forced)
-    : onMount
+  const useOnMount =
+    onMount === undefined
+      ? false // Not on mount (unless forced)
+      : onMount
   const oldValuesLen = oldValues.length
   return argsWithDeps.reduce((meta, arg, index) => {
     if (index >= oldValuesLen || getDepValue(arg) !== oldValues[index]) {
@@ -60,5 +62,5 @@ export function getRunValuesFromDeps(argsWithDeps) {
 
 // Should run ma values?
 export function shouldRunDeps(argsWithDeps) {
-  return !argsWithDeps.some(a => !shouldDepRun(a))
+  return !argsWithDeps.some((a) => !shouldDepRun(a))
 }

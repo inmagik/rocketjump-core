@@ -39,7 +39,7 @@ describe('rocketjump school', () => {
         }
         if (config.className) {
           // Concat them
-          if (newExport.className !== '')  {
+          if (newExport.className !== '') {
             newExport.className += ' '
           }
           newExport.className += config.className
@@ -58,10 +58,13 @@ describe('rocketjump school', () => {
         }
 
         const className = templateVars(rjExport.className, rjExport.vars)
-        const style = Object.keys(rjExport.style).reduce((newStyle, keyStyle) => ({
-          ...newStyle,
-          [keyStyle]: templateVars(rjExport.style[keyStyle], rjExport.vars),
-        }), {})
+        const style = Object.keys(rjExport.style).reduce(
+          (newStyle, keyStyle) => ({
+            ...newStyle,
+            [keyStyle]: templateVars(rjExport.style[keyStyle], rjExport.vars),
+          }),
+          {}
+        )
 
         return {
           className,
@@ -78,7 +81,7 @@ describe('rocketjump school', () => {
       className: 'bg-light d-flex',
       style: {
         color: '$magikClassic',
-        border: '1px solid brown'
+        border: '1px solid brown',
       },
     })
 
@@ -87,7 +90,7 @@ describe('rocketjump school', () => {
       style: {
         background: '$magikClassic',
         color: '$sad',
-      }
+      },
     })()
 
     expect(styledProps).toEqual({
@@ -95,8 +98,8 @@ describe('rocketjump school', () => {
       style: {
         background: 'deepskyblue',
         color: 'blue',
-        border: '1px solid brown'
-      }
+        border: '1px solid brown',
+      },
     })
   })
 
@@ -137,7 +140,7 @@ describe('rocketjump school', () => {
         }
         if (config.className) {
           // Concat them
-          if (newExport.className !== '')  {
+          if (newExport.className !== '') {
             newExport.className += ' '
           }
           newExport.className += config.className
@@ -161,10 +164,13 @@ describe('rocketjump school', () => {
         }
 
         const className = templateVars(rjExport.className, rjExport.vars)
-        const style = Object.keys(rjExport.style).reduce((newStyle, keyStyle) => ({
-          ...newStyle,
-          [keyStyle]: templateVars(rjExport.style[keyStyle]),
-        }), {})
+        const style = Object.keys(rjExport.style).reduce(
+          (newStyle, keyStyle) => ({
+            ...newStyle,
+            [keyStyle]: templateVars(rjExport.style[keyStyle]),
+          }),
+          {}
+        )
 
         const finalExport = {
           className,
@@ -184,39 +190,43 @@ describe('rocketjump school', () => {
       className: 'bg-light d-flex',
       style: {
         color: '$magikClassic',
-        border: '1px solid brown'
+        border: '1px solid brown',
       },
     })
 
     const rjWithDynamicStyle = rj.plugin({
       finalizeExport: (originalExport, templateVars) => {
         const baseStyle = originalExport.style
-        const style = props => Object.keys(baseStyle).reduce((newStyle, k) => ({
-          ...newStyle,
-          [k]: typeof baseStyle[k] === 'function'
-            ? templateVars(baseStyle[k](props))
-            : baseStyle[k]
-        }), {})
+        const style = (props) =>
+          Object.keys(baseStyle).reduce(
+            (newStyle, k) => ({
+              ...newStyle,
+              [k]:
+                typeof baseStyle[k] === 'function'
+                  ? templateVars(baseStyle[k](props))
+                  : baseStyle[k],
+            }),
+            {}
+          )
         return {
           ...originalExport,
           style,
         }
-      }
+      },
     })
 
     const styledProps = rj(rjWithDynamicStyle(), Theme, {
       className: 'flex-end',
       style: {
-        background: props => props.black ? 'black' : '$magikClassic',
+        background: (props) => (props.black ? 'black' : '$magikClassic'),
         color: '$sad',
-      }
+      },
     })()
 
     expect(styledProps.style({ black: true })).toEqual({
       background: 'black',
       color: 'blue',
-      border: '1px solid brown'
+      border: '1px solid brown',
     })
-
   })
 })
