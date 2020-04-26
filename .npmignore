@@ -2,6 +2,7 @@
 .babel*
 rollup.config.js
 .travis.yml
+.prettierrc
 
 # dependencies
 /node_modules
