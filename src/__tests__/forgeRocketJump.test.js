@@ -1,8 +1,22 @@
 import forgeRocketJump from '../forgeRocketJump'
 import { makeExportValue, squashExportValue } from '../exportValue'
 import { enhanceWithPlugins } from '../plugins'
+import { isPartialRj, isObjectRj } from '../types'
 
 describe('forgeRocketJump', () => {
+  it("can't forge an rj without a cool mark", () => {
+    expect(() => {
+      forgeRocketJump({
+        makeExport: (_, config, rjExport = {}) => {
+          return { ...config }
+        },
+        finalizeExport: (rjExport, runConfig, finalConfig, plugIns) => {
+          // don't hack config
+          return { ...rjExport }
+        },
+      })
+    }).toThrow()
+  })
   it('should forge a mergiable tool in respect of given makeExport implementation', () => {
     const rj = forgeRocketJump({
       mark: Symbol('rj'),
@@ -61,6 +75,44 @@ describe('forgeRocketJump', () => {
         snitch: false,
       },
     })
+  })
+
+  it('should give the ability to choose when rocketjump into an RjObject', () => {
+    const rjDouble = forgeRocketJump({
+      mark: Symbol('2x'),
+      makeExport: (_, config, rjExport = {}) => ({
+        ...rjExport,
+        ...config,
+      }),
+      finalizeExport: (rjExport) => ({ ...rjExport }),
+    })
+
+    const objA = rjDouble({
+      foo: 23,
+    })()
+    expect(objA).toEqual({
+      foo: 23,
+    })
+    expect(isObjectRj(objA)).toBe(true)
+    expect(isPartialRj(rjDouble())).toBe(true)
+
+    const rjGo = forgeRocketJump({
+      shouldRocketJump: (objs) => objs.some((o) => o.jump === true),
+      mark: Symbol('2x'),
+      makeExport: (_, config, rjExport = {}) => ({
+        ...rjExport,
+        ...config,
+      }),
+      finalizeExport: (rjExport) => ({ ...rjExport }),
+    })
+
+    expect(rjGo({ x: 1 })()).toEqual({ x: 1 })
+
+    expect(rjGo({ x: 1, jump: true })).toEqual({ x: 1, jump: true })
+
+    expect(isObjectRj(rjGo({ jump: true }))).toBe(true)
+
+    expect(isPartialRj(rjGo({ jumpx: true }))).toBe(true)
   })
 
   it('should give the abilty to lazy compose export value and squash them from RjObject', () => {
