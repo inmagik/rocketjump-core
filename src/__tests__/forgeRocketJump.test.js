@@ -1,8 +1,115 @@
 import forgeRocketJump from '../forgeRocketJump'
+import { makeExportValue, squashExportValue } from '../exportValue'
 import { enhanceWithPlugins } from '../plugins'
 
-describe('rocketjump school', () => {
-  it('basic rj', () => {
+describe('forgeRocketJump', () => {
+  it('should forge a mergiable tool in respect of given makeExport implementation', () => {
+    const rj = forgeRocketJump({
+      mark: Symbol('rj'),
+      makeExport: (_, config, rjExport = {}) => {
+        let newExport = {}
+        // Default foo values
+        newExport.foo = rjExport.foo || {
+          name: 'GioVa',
+        }
+        // Extend foo
+        newExport.foo = {
+          ...newExport.foo,
+          ...(config || {}).foo,
+        }
+        return newExport
+      },
+      finalizeExport: (rjExport, runConfig, finalConfig, plugIns) => {
+        // don't hack config
+        return { ...rjExport }
+      },
+    })
+
+    const RjObjectA = rj(null)()
+
+    expect(RjObjectA).toEqual({
+      foo: {
+        name: 'GioVa',
+      },
+    })
+
+    const RjObjectB = rj(
+      rj(
+        rj({
+          foo: {
+            group: 'GANG',
+          },
+        }),
+        {
+          foo: {
+            snitch: false,
+          },
+        }
+      ),
+      {
+        foo: {
+          name: 'Dr3f',
+          drink: 'Sciroppo',
+        },
+      }
+    )()
+    expect(RjObjectB).toEqual({
+      foo: {
+        name: 'Dr3f',
+        drink: 'Sciroppo',
+        group: 'GANG',
+        snitch: false,
+      },
+    })
+  })
+
+  it('should give the abilty to lazy compose export value and squash them from RjObject', () => {
+    const exportMessage = makeExportValue({
+      defaultValue: '',
+      isLazy: (v) => v === null,
+      shouldCompose: (v) => typeof v === 'string',
+      compose: (message, m) => message + m,
+    })
+
+    // Create the stupidest rj ever
+    const rj = forgeRocketJump({
+      mark: Symbol('rj'),
+      pure: true,
+      makeExport: (_, config, rjExport = {}) => ({
+        message: exportMessage(rjExport.message, config.m),
+      }),
+      finalizeExport: (rjExport) => ({ ...rjExport }), // don't hack config
+    })
+
+    expect(rj({})()).toEqual({ message: '' })
+
+    expect(
+      rj(
+        {
+          m: 'R',
+        },
+        {
+          m: 'J',
+        }
+      )()
+    ).toEqual({ message: 'RJ' })
+
+    let e = {}
+
+    e = rj(
+      {
+        m: 'G',
+      },
+      rj({ m: null }, { m: 'o' }),
+      rj({ m: null }),
+      rj({ m: ' ~ Matto IL DRAGO' }, { m: null })
+    )()
+    expect(squashExportValue(e.message, ['1', 'Va', ' 23'])).toBe(
+      'G1oVa ~ Matto IL DRAGO 23'
+    )
+  })
+
+  it('should guarantee the ability to finalize into custom RjObject shape', () => {
     const rj = forgeRocketJump({
       mark: Symbol('XxX'),
       makeExport: (_, config, rjExport = {}) => {
@@ -103,7 +210,7 @@ describe('rocketjump school', () => {
     })
   })
 
-  it('rj with plugins', () => {
+  it('should give the abilty through plugins to hack finalize export into RjObject', () => {
     const rj = forgeRocketJump({
       mark: Symbol('XxX'),
       makeExport: (_, config, rjExport = {}) => {
@@ -227,6 +334,138 @@ describe('rocketjump school', () => {
       background: 'black',
       color: 'blue',
       border: '1px solid brown',
+    })
+  })
+
+  it('should give the abilty through plugins to hack make export', () => {
+    const rj = forgeRocketJump({
+      mark: Symbol('rj'),
+      makeExport: (runConfig, config, rjExport = {}, plugIns) => {
+        let newExport = { ...rjExport }
+        // Default foo values
+        newExport.foo = rjExport.foo || {
+          name: 'GioVa',
+        }
+        // Extend foo
+        newExport.foo = {
+          ...newExport.foo,
+          ...(config || {}).foo,
+        }
+
+        return enhanceWithPlugins(plugIns, newExport, 'makeExport', [
+          runConfig,
+          config,
+        ])
+      },
+      finalizeExport: (rjExportArg, runConfig, finalConfig, plugIns) => {
+        const rjExport = enhanceWithPlugins(
+          plugIns,
+          rjExportArg,
+          'hackExportBeforeFinalize'
+        )
+        let finalExport = { ...rjExport }
+        if (finalExport?.foo?.king === 'giova') {
+          finalExport = {
+            KING: '$$',
+            ...finalExport,
+          }
+        }
+        return enhanceWithPlugins(plugIns, finalExport, 'finalizeExport', [
+          runConfig,
+          finalConfig,
+        ])
+      },
+    })
+
+    const plugin1 = rj.plugin({
+      name: 'One',
+      finalizeExport: (finalExport, _, config) => {
+        return {
+          ...finalExport,
+          override: 'G E M E L L O',
+        }
+      },
+      hackExportBeforeFinalize: (finalExport) => {
+        return {
+          ...finalExport,
+          foo: {
+            ...finalExport.foo,
+            king: 'giova',
+          },
+        }
+      },
+      makeExport: (extendExport, _, config) => {
+        const betterExport = {
+          ...extendExport,
+        }
+        if (config.babu) {
+          betterExport.babu = config.babu
+        }
+        return betterExport
+      },
+    })
+
+    const plugin2 = rj.plugin(
+      {
+        name: 'Two',
+      },
+      (gang = 23) =>
+        rj.pure(plugin1(99), {
+          babu: 'Budda',
+          foo: {
+            gang,
+          },
+        })
+    )
+
+    const plugin3 = rj.plugin(
+      {
+        name: '##3',
+      },
+      (g = 'Ciko') =>
+        rj.pure(plugin2(1), {
+          foo: {
+            g,
+          },
+        })
+    )
+
+    expect(rj({})()).toEqual({
+      foo: {
+        name: 'GioVa',
+      },
+    })
+
+    expect(
+      rj({
+        foo: {
+          name: 'Rinne',
+          gang: 23,
+        },
+      })()
+    ).toEqual({
+      foo: {
+        name: 'Rinne',
+        gang: 23,
+      },
+    })
+
+    expect(
+      rj(plugin3(), {
+        foo: {
+          name: 'Rinne',
+        },
+      })()
+    ).toEqual({
+      babu: 'Budda',
+      foo: {
+        name: 'Rinne',
+        g: 'Ciko',
+        gang: 1,
+        king: 'giova',
+      },
+      KING: '$$',
+      override: 'G E M E L L O',
     })
   })
 })

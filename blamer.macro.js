@@ -10,7 +10,13 @@ function blamer({ babel: { types: t }, references: { default: paths } }) {
   )
 
   paths.forEach((nodePath) => {
-    const blamerCallArgs = nodePath.parentPath.container.expression.arguments
+    const blamerCallArgs = nodePath.parentPath.node.arguments
+    if (!t.isExpressionStatement(nodePath.parentPath.container)) {
+      throw new MacroError(
+        'Blamer macro is transpailed to throw so you can use blamer ' +
+          'as you use throw inside a statement.'
+      )
+    }
     if (blamerCallArgs.length !== 2) {
       throw new MacroError('Sorry, blamer macro needs two params')
     }

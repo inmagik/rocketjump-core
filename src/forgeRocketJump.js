@@ -92,12 +92,18 @@ export default function forgeRocketJump(rjImplArg) {
   if (!rjImpl.enableGlobals) {
     // Long time a ago i belive in a world without side effects ...
 
-    // function rj(...args) {
+    const rj = (...args) => pureRj(...args)
 
-    // }
+    // Attach the RJ Implementation to rj constructor! Fuck YEAH!
+    Object.defineProperty(rj, '__rjimplementation', { value: rjImpl.mark })
 
-    pureRj.plugin = makeRjPlugin(rjImpl)
-    return pureRj
+    // Always attach a pure rj builder to compatibilty \w globals style
+    rj.pure = pureRj
+
+    // Plugins!
+    rj.plugin = makeRjPlugin(rjImpl)
+
+    return rj
   }
 
   // Global config of all rj except for Generated from Plugins
@@ -180,14 +186,14 @@ function makeRjPlugin(rjImpl, rjGlobals) {
         partialRj = createPartialRj(...args)
       }
 
+      let configKeyLen = Object.keys(plugInConfig).length
       if (
-        plugInConfig === null ||
+        plugInConfig !== null &&
+        configKeyLen > 0 &&
         // When the plug in config has only "name" as key avoid
         // Set them into the plug-in chain
-        (plugInConfig.name && Object.keys(plugInConfig).length === 1)
+        !(plugInConfig.name && configKeyLen === 1)
       ) {
-        partialRj.__plugins = new Set()
-      } else {
         partialRj.__plugins = unionSet([plugInConfig], partialRj.__plugins)
       }
       return partialRj

@@ -1,8 +1,8 @@
 import forgeRocketJump from '../forgeRocketJump'
 import { isPartialRj, isObjectRj } from '../types'
 
-describe('rocketjump-core crafter', () => {
-  it('shoudl able to check generics types', () => {
+describe('rocketjump types', () => {
+  it('shoudl be generic Partial and Object', () => {
     const rjGiova = forgeRocketJump({
       mark: Symbol('giova'),
       shouldRocketJump: () => false, // double invocation
@@ -22,7 +22,7 @@ describe('rocketjump-core crafter', () => {
     expect(isPartialRj(RjStateObject)).toBe(false)
     expect(isObjectRj(RjStateObject)).toBe(true)
   })
-  it('shoudl able to check generics family types', () => {
+  it('should be Partial and Object target to a specific family', () => {
     const rjGiova = forgeRocketJump({
       mark: Symbol('giova'),
       shouldRocketJump: () => false, // double invocation

@@ -1,12 +1,29 @@
-// MagIK DeBps for useRunRj hook
-import * as allDeps from './deps/deps'
-export const deps = { ...allDeps } // Remove es6 module shit
-export * from './deps/funcs'
+// a rj stamm fort
 export { default as forgeRocketJump } from './forgeRocketJump'
-export { default as bindActionCreators } from './bindActionCreators'
-export { default as createUseRunRj } from './createUseRunRj'
-export { default as createComputeState } from './createComputeState'
-export * from './exportValue'
+
+// Is this the real life? Is this just fantasy?
+// you can answer this question \w Rj Types!
 export * from './types'
-export * from './actions'
+
+// lazy export values for rj export
+export * from './exportValue'
+
+// What is a library without plugins?
+// rj helpers for hanlde plugins
 export * from './plugins'
+
+// bindActionCreators + MagIK Builder tm
+export { default as bindActionCreators } from './bindActionCreators'
+
+// action with Builder tm for rj
+export * from './actions'
+
+// create na auto-runnable effect driven React Hook rj launcher
+export { default as createUseRunRj } from './createUseRunRj'
+
+// MagIK DeBps for useRunRj hook
+export * as deps from './deps/deps'
+export * from './deps/funcs'
+
+// compute state from state selectors
+export { default as createComputeState } from './createComputeState'

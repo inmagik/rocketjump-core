@@ -1,7 +1,7 @@
 export const arrayze = (a) => (Array.isArray(a) ? a : [a])
 
-// Object path getter
-export function get(obj, path, defaultValue = undefined) {
+// Simple Object path getter for plain object (only dot supported)
+export function get(obj, path, defaultValue) {
   const keys = path.split('.')
   const result =
     obj === null
