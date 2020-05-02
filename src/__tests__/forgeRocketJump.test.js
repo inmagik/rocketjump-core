@@ -115,7 +115,6 @@ describe('forgeRocketJump', () => {
     expect(isPartialRj(rjGo({ jumpx: true }))).toBe(true)
 
     expect(isRj(rjGo)).toEqual(true)
-    expect(isRj(rjGo.pure)).toEqual(true)
   })
 
   it('should give the abilty to lazy compose export value and squash them from RjObject', () => {
@@ -433,7 +432,6 @@ describe('forgeRocketJump', () => {
     })
 
     const plugin1 = rj.plugin({
-      name: 'One',
       finalizeExport: (finalExport, _, config) => {
         return {
           ...finalExport,
@@ -460,30 +458,20 @@ describe('forgeRocketJump', () => {
       },
     })
 
-    const plugin2 = rj.plugin(
-      {
-        name: 'Two',
-      },
-      (gang = 23) =>
-        rj.pure(plugin1(99), {
-          babu: 'Budda',
-          foo: {
-            gang,
-          },
-        })
-    )
+    const plugin2 = (gang = 23) =>
+      rj(plugin1(99), {
+        babu: 'Budda',
+        foo: {
+          gang,
+        },
+      })
 
-    const plugin3 = rj.plugin(
-      {
-        name: '##3',
-      },
-      (g = 'Ciko') =>
-        rj.pure(plugin2(1), {
-          foo: {
-            g,
-          },
-        })
-    )
+    const plugin3 = (g = 'Ciko') =>
+      rj(plugin2(1), {
+        foo: {
+          g,
+        },
+      })
 
     expect(rj({})()).toEqual({
       foo: {
@@ -524,7 +512,7 @@ describe('forgeRocketJump', () => {
     })
   })
 
-  it('should forge rj with gloabs when specified', () => {
+  it('should give the ability to build a rj with curried partial', () => {
     let rj = forgeRocketJump({
       mark: Symbol('P'),
       makeExport: (_, config, rjExport = {}) => ({
@@ -537,39 +525,13 @@ describe('forgeRocketJump', () => {
 
     expect(rj({ gang: 23 })).toEqual({ gang: 23 })
 
-    expect(rj.pure({ gang: 23 })).toEqual({ gang: 23 })
-
-    expect(rj.setGlobalRjs).toBe(undefined)
-
-    rj = forgeRocketJump({
-      mark: Symbol('G'),
-      enableGlobals: true,
-      makeExport: (_, config, rjExport = {}) => ({
-        ...rjExport,
-        ...config,
-      }),
-      finalizeExport: (rjExport = {}) => ({ ...rjExport }),
-      shouldRocketJump: (objs) => objs.some((o) => o.gang),
-    })
-
     expect(rj({ gang: 23 })).toEqual({ gang: 23 })
-
-    expect(rj.pure({ gang: 23 })).toEqual({ gang: 23 })
-
-    rj.setGlobalRjs(
-      rj({
-        giova: true,
-      })
-    )
-
-    expect(rj({ gang: 23 })).toEqual({ gang: 23, giova: true })
-
-    expect(rj.pure({ gang: 23 })).toEqual({ gang: 23 })
-
-    rj.addNamespace('gang', rj.pure({ ola: 23 }))
-    expect(isRj(rj.ns.gang)).toBe(true)
 
     const buildedRj = rj.build(rj({ blue: true }))
     expect(isRj(buildedRj)).toBe(true)
+    expect(buildedRj({ gang: 23 })).toEqual({
+      gang: 23,
+      blue: true,
+    })
   })
 })

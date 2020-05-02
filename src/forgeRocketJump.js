@@ -52,10 +52,6 @@ const DefaultRjImplementation = {
 
   // Plugins in the core implementation
   forgedPlugins: [],
-
-  // When true remove all global side effect prone shit eehhehe joke
-  // if U use Y head Y can use them i implement them for how?
-  enableGlobals: false,
 }
 
 function markAsRj(baseFn, rjImpl) {
@@ -115,127 +111,40 @@ export default function forgeRocketJump(rjImplArg) {
     }
   }
 
-  const pureRj = makeRj(rjImpl)
-
-  if (!rjImpl.enableGlobals) {
-    // Long time a ago i belive in a world without side effects ...
-
-    const rj = (...args) => pureRj(...args)
-
-    // Always attach a pure rj builder to compatibilty \w globals style
-    rj.pure = pureRj
-
-    // Plugins!
-    rj.plugin = makeRjPlugin(rjImpl)
-
-    // Build An Rj With defaults
-    rj.build = (...rjs) => {
-      const newRj = (...callRjs) => pureRj(...rjs, ...callRjs)
-      markAsRj(newRj, rjImpl)
-      return newRj
-    }
-
-    markAsRj(rj, rjImpl)
-    return rj
-  }
-
-  // Global config of all rj except for Generated from Plugins
-  const rjGlobals = {
-    rjs: [],
-    pluginsDefaults: {},
-  }
-
-  // Wrap pure rj and prepend global base rjs
-  const rj = (...partialRjsOrConfigs) => {
-    return pureRj(...rjGlobals.rjs, ...partialRjsOrConfigs)
-  }
+  const rj = makeRj(rjImpl)
 
   // Plugins!
-  rj.plugin = makeRjPlugin(rjImpl, rjGlobals)
-
-  // rj without globals
-  rj.pure = pureRj
+  rj.plugin = makeRjPlugin(rjImpl)
 
   // Build An Rj With defaults
-  rj.build = (...rjs) => {
-    const newRj = (...callRjs) => pureRj(...rjs, ...callRjs)
+  rj.build = (...partialRjs) => {
+    const newRj = (...rjArgs) => rj(...partialRjs, ...rjArgs)
     markAsRj(newRj, rjImpl)
     return newRj
   }
 
-  rj.clearGlobalRjs = () => {
-    rjGlobals.rjs = []
-  }
-  rj.setGlobalRjs = (...rjs) => {
-    rjGlobals.rjs = rjs
-  }
-
-  rj.clearPluginsDefaults = () => {
-    rjGlobals.pluginsDefaults = {}
-  }
-  rj.setPluginsDefaults = (pluginsDefaults) => {
-    rjGlobals.pluginsDefaults = pluginsDefaults
-  }
-
-  // Namespaces!!!
-  rj.ns = {}
-
-  rj.addNamespace = (name, ...rjs) => {
-    const newRj = (...callRjs) => pureRj(...rjs, ...callRjs)
-    markAsRj(newRj, rjImpl)
-    rj.ns[name] = newRj
-  }
-  rj.removeNamespace = (name) => {
-    delete rj.ns[name]
-  }
-  rj.clearNamespaces = () => {
-    rj.ns = {}
-  }
-
-  markAsRj(rj, rjImpl)
   return rj
 }
 
-function makeRjPlugin(rjImpl, rjGlobals) {
+function makeRjPlugin(rjImpl) {
   function rjPlugin(plugInConfigArg, createPartialRjArg) {
-    let plugInConfig = null
-    if (typeof plugInConfigArg === 'object' && plugInConfigArg !== null) {
-      // Can't touch plugin config anymore
-      plugInConfig = Object.freeze({ ...plugInConfigArg })
+    if (typeof plugInConfigArg !== 'object' || plugInConfigArg === null) {
+      blamer(
+        '[rj-core-forge]',
+        'Please give a plain object as Plugin config to rj.plugin()'
+      )
     }
+    // Can't touch plugin config anymore
+    const plugInConfig = Object.freeze({ ...plugInConfigArg })
 
-    let createPartialRj
-    if (typeof createPartialRjArg === 'function') {
-      createPartialRj = createPartialRjArg
-    } else {
-      createPartialRj = () => noopPartialRj(rjImpl)
-    }
+    const createPartialRj =
+      typeof createPartialRjArg === 'function'
+        ? createPartialRjArg
+        : () => noopPartialRj(rjImpl)
 
     return function rjPluginBuilder(...args) {
-      let partialRj
-      if (
-        arguments.length === 0 &&
-        plugInConfig?.name &&
-        rjGlobals?.pluginsDefaults?.[plugInConfig.name]
-      ) {
-        // No args give use default global settings when got it
-        partialRj = createPartialRj(
-          ...rjGlobals.pluginsDefaults[plugInConfig.name]
-        )
-      } else {
-        partialRj = createPartialRj(...args)
-      }
-
-      let configKeyLen = Object.keys(plugInConfig).length
-      if (
-        plugInConfig !== null &&
-        configKeyLen > 0 &&
-        // When the plug in config has only "name" as key avoid
-        // Set them into the plug-in chain
-        !(plugInConfig.name && configKeyLen === 1)
-      ) {
-        partialRj.__plugins = unionSet([plugInConfig], partialRj.__plugins)
-      }
+      const partialRj = createPartialRj(...args)
+      partialRj.__plugins = unionSet([plugInConfig], partialRj.__plugins)
       return partialRj
     }
   }
@@ -244,6 +153,16 @@ function makeRjPlugin(rjImpl, rjGlobals) {
 
 // Make the pure rj function using give stable implementation
 function makeRj(rjImpl) {
+  // Set of fronzen PlugIns config
+  const forgedPlugInsSet = new Set(
+    rjImpl.forgedPlugins.map((plugInConfig) =>
+      // Can't touch this
+      Object.freeze({
+        ...plugInConfig,
+      })
+    )
+  )
+
   // Here is where the magic starts the functional recursive rjs combining \*.*/
   function rj(...partialRjsOrConfigs) {
     // Grab a Set of plugins config in current rj Tree
@@ -253,7 +172,7 @@ function makeRj(rjImpl) {
         a.__plugins.forEach((plugin) => resultSet.add(plugin))
       }
       return resultSet
-    }, new Set(rjImpl.forgedPlugins))
+    }, forgedPlugInsSet)
 
     // Derive the partial config from partial configuration
     // (default implementation skip other partialRjs)
