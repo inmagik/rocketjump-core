@@ -1,4 +1,4 @@
-import blamer from '../blamer.macro'
+import invariant from './invariant'
 import {
   $TYPE_RJ_EXPORT,
   $TYPE_RJ_PARTIAL,
@@ -35,15 +35,15 @@ const DefaultRjImplementation = {
   ) => partialRjsOrConfigs,
 
   makeExport: (runConfig, rjOrConfig, combinedExport, plugIns) => {
-    blamer(
-      '[rj-core-forge]',
+    invariant(
+      false,
       'You should implement `makeExport` in order to forge a rocketjump!'
     )
   },
 
   finalizeExport: (finalExport, runConfig, finalConfig, plugIns) => {
-    blamer(
-      '[rj-core-forge]',
+    invariant(
+      false,
       'You should implement `finalizeExport` in order to forge a rocketjump!'
     )
   },
@@ -128,12 +128,10 @@ export default function forgeRocketJump(rjImplArg) {
 
 function makeRjPlugin(rjImpl) {
   function rjPlugin(plugInConfigArg, createPartialRjArg) {
-    if (typeof plugInConfigArg !== 'object' || plugInConfigArg === null) {
-      blamer(
-        '[rj-core-forge]',
-        'Please give a plain object as Plugin config to rj.plugin()'
-      )
-    }
+    invariant(
+      typeof plugInConfigArg === 'object' && plugInConfigArg !== null,
+      'Please give a plain object as Plugin config to rj.plugin()'
+    )
     // Can't touch plugin config anymore
     const plugInConfig = Object.freeze({ ...plugInConfigArg })
 

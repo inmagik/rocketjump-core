@@ -12,5 +12,5 @@ module.exports = {
       },
     ],
   ],
-  plugins: ['babel-plugin-macros'],
+  plugins: ['babel-plugin-dev-expression'],
 }

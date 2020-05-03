@@ -1,4 +1,4 @@
-import blamer from '../blamer.macro'
+import invariant from './invariant'
 import { isEffectAction } from './actions'
 import {
   shouldRunDeps,
@@ -131,9 +131,11 @@ function attachBuilder(boundActionCreator, actionCreator, dispatch) {
     return new Builder(actionCreator, dispatch).withMeta(meta)
   }
   boundActionCreator.run = () => {
-    blamer(
-      '[rj-core-run-action]',
-      '[rocketjump-core] Action creator call In order to do a plain call without meta, onSuccess or onFailure, just invoke the action creator, use the run method only when you leverage the builder functionalities'
+    invariant(
+      false,
+      'Action creator call In order to do a plain call without meta, ' +
+        'onSuccess or onFailure, just invoke the action creator, ' +
+        'use the run method only when you leverage the builder functionalities.'
     )
   }
   boundActionCreator.asPromise = (...args) => {

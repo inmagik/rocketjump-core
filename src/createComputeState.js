@@ -1,4 +1,4 @@
-import blamer from '../blamer.macro'
+import invariant from './invariant'
 
 export default function createComputeState(computed, extraSelectors = {}) {
   // No computed config provided
@@ -35,9 +35,8 @@ export default function createComputeState(computed, extraSelectors = {}) {
         selector = selectors[selectorName]
       }
       if (selector === undefined) {
-        blamer(
-          '[rj-core]',
-          `[rocketjump] you specified a non existing selector [${selectorName}] ` +
+        invariant(
+          `you specified a non existing selector [${selectorName}] ` +
             `check your computed config.`
         )
       }
