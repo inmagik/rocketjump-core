@@ -34,12 +34,11 @@ export default function createComputeState(computed, extraSelectors = {}) {
       if (selectors[selectorName]) {
         selector = selectors[selectorName]
       }
-      if (selector === undefined) {
-        invariant(
-          `you specified a non existing selector [${selectorName}] ` +
-            `check your computed config.`
-        )
-      }
+      invariant(
+        selector !== undefined,
+        `you specified a non existing selector [${selectorName}] ` +
+          `check your computed config.`
+      )
       return {
         ...computedState,
         [keyName]: selector(state),
