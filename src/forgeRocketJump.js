@@ -1,18 +1,14 @@
 import invariant from './invariant'
 import {
+  markAsRj,
+  markAsPartialRj,
+  markAsRjObject,
   $TYPE_RJ_EXPORT,
-  $TYPE_RJ_PARTIAL,
-  $TYPE_RJ_OBJECT,
-  $TYPE_RJ,
+  $TYPE_RJ_INJECT_PLUGIN,
 } from './internals'
-import { mergeConfigs } from './utils'
+import { mergeConfigs, unionSet } from './utils'
 import { isPartialRj } from './types'
-
-function unionSet(setA, setB) {
-  let _union = new Set(setA)
-  setB.forEach((elem) => _union.add(elem))
-  return _union
-}
+import { enhanceWithPlugins } from './plugins'
 
 const DefaultRjImplementation = {
   mark: null, // A Symbol to identify implementation!
@@ -52,43 +48,9 @@ const DefaultRjImplementation = {
 
   // Plugins in the core implementation
   forgedPlugins: [],
-}
 
-function markAsRj(baseFn, rjImpl) {
-  Object.defineProperty(baseFn, '__rjtype', {
-    value: $TYPE_RJ,
-  })
-  Object.defineProperty(baseFn, '__rjimplementation', {
-    value: rjImpl.mark,
-  })
-}
-
-function markAsPartialRj(baseFn, rjImpl, config, plugIns = new Set()) {
-  Object.defineProperty(baseFn, '__rjtype', {
-    value: $TYPE_RJ_PARTIAL,
-  })
-  Object.defineProperty(baseFn, '__rjimplementation', {
-    value: rjImpl.mark,
-  })
-  Object.defineProperty(baseFn, '__rjconfig', { value: config })
-  baseFn.__plugins = plugIns
-}
-
-function markAsRjObject(baseFn, rjImpl, config) {
-  Object.defineProperty(baseFn, '__rjtype', {
-    value: $TYPE_RJ_OBJECT,
-  })
-  Object.defineProperty(baseFn, '__rjimplementation', {
-    value: rjImpl.mark,
-  })
-  Object.defineProperty(baseFn, '__rjconfig', { value: config })
-}
-
-function noopPartialRj(rjImpl, config = {}) {
-  const TheNoopPartialRj = (runConfig, combinedExport, plugIns) =>
-    combinedExport
-  markAsPartialRj(TheNoopPartialRj, rjImpl, config)
-  return TheNoopPartialRj
+  // String name of current impl
+  name: null,
 }
 
 // Forge a rocketjump in da S T E L L
@@ -113,9 +75,6 @@ export default function forgeRocketJump(rjImplArg) {
 
   const rj = makeRj(rjImpl)
 
-  // Plugins!
-  rj.plugin = makeRjPlugin(rjImpl)
-
   // Build An Rj With defaults
   rj.build = (...partialRjs) => {
     const newRj = (...rjArgs) => rj(...partialRjs, ...rjArgs)
@@ -126,45 +85,33 @@ export default function forgeRocketJump(rjImplArg) {
   return rj
 }
 
-function makeRjPlugin(rjImpl) {
-  function rjPlugin(plugInConfigArg, createPartialRjArg) {
-    invariant(
-      typeof plugInConfigArg === 'object' && plugInConfigArg !== null,
-      'Please give a plain object as Plugin config to rj.plugin()'
-    )
-    // Can't touch plugin config anymore
-    const plugInConfig = Object.freeze({ ...plugInConfigArg })
-
-    const createPartialRj =
-      typeof createPartialRjArg === 'function'
-        ? createPartialRjArg
-        : () => noopPartialRj(rjImpl)
-
-    return function rjPluginBuilder(...args) {
-      const partialRj = createPartialRj(...args)
-      partialRj.__plugins = unionSet([plugInConfig], partialRj.__plugins)
-      return partialRj
-    }
-  }
-  return rjPlugin
-}
-
 // Make the pure rj function using give stable implementation
 function makeRj(rjImpl) {
   // Set of fronzen PlugIns config
-  const forgedPlugInsSet = new Set(
+  const forgedPlugInsList = Object.freeze(
     rjImpl.forgedPlugins.map((plugInConfig) =>
       // Can't touch this
-      Object.freeze({
-        ...plugInConfig,
-      })
+      Object.freeze({ ...plugInConfig })
     )
   )
 
   // Here is where the magic starts the functional recursive rjs combining \*.*/
-  function rj(...partialRjsOrConfigs) {
+  function rj(...recursionChain) {
+    const partialRjsOrConfigs = recursionChain.map((rjRecursor) => {
+      // Inject Partial!
+      if (
+        typeof rjRecursor === 'function' &&
+        rjRecursor.__rjtype === $TYPE_RJ_INJECT_PLUGIN
+      ) {
+        const partialRj = rjRecursor(rj, rjImpl)
+        return partialRj
+      }
+      return rjRecursor
+    })
+
     // Grab a Set of plugins config in current rj Tree
     // rj( plugiInA(), plugInB()  )
+    const forgedPlugInsSet = new Set(forgedPlugInsList)
     const plugInsInTree = partialRjsOrConfigs.reduce((resultSet, a) => {
       if (isPartialRj(a)) {
         a.__plugins.forEach((plugin) => resultSet.add(plugin))
@@ -246,38 +193,48 @@ function makeRj(rjImpl) {
 
       // Invoke all rjs and configs and merge returned exports
       // ... yeah a mindfuck but is coool. ..
-      const finalExport = recursionRjs.reduce((combinedExport, rjOrConfig) => {
-        if (typeof rjOrConfig === 'function') {
-          // Is a partial rj jump it!
-          return rjOrConfig(runConfig, combinedExport, plugIns)
-        } else {
-          // Is a config ... run config + jump config = export
-          const newExport = rjImpl.makeExport(
-            runConfig,
-            rjOrConfig,
-            combinedExport,
-            plugIns
-          )
-          // Mark export as valid
-          Object.defineProperty(newExport, '__rjtype', {
-            value: $TYPE_RJ_EXPORT,
-          })
-          return newExport
-        }
-      }, continuedExport)
+      const finalExport = recursionRjs.reduce(
+        (combinedExport, partialRjOrConfg) => {
+          if (typeof partialRjOrConfg === 'function') {
+            // Is a partial rj jump it!
+            return partialRjOrConfg(runConfig, combinedExport, plugIns)
+          } else {
+            // Is a config ... run config + jump config = export
+            const newExport = rjImpl.makeExport(
+              partialRjOrConfg,
+              combinedExport,
+              runConfig,
+              plugIns
+            )
+            // Mark export as valid
+            Object.defineProperty(newExport, '__rjtype', {
+              value: $TYPE_RJ_EXPORT,
+            })
+            return newExport
+          }
+        },
+        continuedExport
+      )
 
       if (isLastRjInvocation) {
         // Mark as an Rj Object that can be runned into
         // rj-react
         // or mount on redux / saga
-        const rjObject = rjImpl.finalizeExport(
+        let rawRjObject = rjImpl.finalizeExport(
           finalExport,
           runConfig,
           finalConfig,
           plugIns
         )
-        markAsRjObject(rjObject, rjImpl, partialConfig)
-        return rjImpl.hackRjObject(rjObject, plugIns)
+        // ++ PlugIns
+        rawRjObject = enhanceWithPlugins(
+          plugIns,
+          rawRjObject,
+          'finalizeExport',
+          [finalExport, finalConfig, runConfig]
+        )
+        markAsRjObject(rawRjObject, rjImpl, partialConfig)
+        return rjImpl.hackRjObject(rawRjObject, plugIns)
       } else {
         return finalExport
       }

@@ -90,3 +90,9 @@ export const composeReducers = (...reducers) => (prevState, action) =>
       return reducer(nextState, action)
     }
   }, prevState)
+
+export function unionSet(setA, setB) {
+  let _union = new Set(setA)
+  setB.forEach((elem) => _union.add(elem))
+  return _union
+}
