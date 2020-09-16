@@ -1,5 +1,36 @@
 import { isEffectAction } from './actions'
-import { shouldRunDeps, getMetaFromDeps, getRunValuesFromDeps } from './deps/funcs'
+import {
+  shouldRunDeps,
+  getMetaFromDeps,
+  getRunValuesFromDeps,
+} from './deps/funcs'
+
+function mergeCallbacks(curriedCallbacks, callbacks) {
+  const mergedCallbacks = {}
+  if (curriedCallbacks.onSuccess) {
+    mergedCallbacks.onSuccess = (...args) => {
+      curriedCallbacks.onSuccess
+        .concat(callbacks.onSuccess || [])
+        .forEach((cb) => {
+          cb(...args)
+        })
+    }
+  } else if (callbacks.onSuccess) {
+    mergedCallbacks.onSuccess = callbacks.onSuccess
+  }
+  if (curriedCallbacks.onFailure) {
+    mergedCallbacks.onFailure = (...args) => {
+      curriedCallbacks.onFailure
+        .concat(callbacks.onFailure || [])
+        .forEach((cb) => {
+          cb(...args)
+        })
+    }
+  } else if (callbacks.onFailure) {
+    mergedCallbacks.onFailure = callbacks.onFailure
+  }
+  return mergedCallbacks
+}
 
 /**
  * Builder pattern implementation for action creators calls
@@ -12,13 +43,16 @@ class Builder {
     this.dispatch = dispatch
     this.callbacks = {}
     this.metaTransforms = []
+    // Curry my Builder
+    this.curriedCallbacks = {}
+    this.curriedArgs = []
   }
 
   withMeta(meta) {
     if (typeof meta === 'function') {
       this.metaTransforms.push(meta)
     } else {
-      this.metaTransforms.push(oldMeta => ({
+      this.metaTransforms.push((oldMeta) => ({
         ...oldMeta,
         ...meta,
       }))
@@ -36,7 +70,47 @@ class Builder {
     return this
   }
 
-  run(...argsWithDeps) {
+  curry(...curryArgs) {
+    const metaTransforms = [...this.metaTransforms]
+    const callbacks = { ...this.callbacks }
+    const curriedCallbacks = { ...this.curriedCallbacks }
+    const nextArgs = this.curriedArgs.concat(curryArgs)
+
+    const makeBuilder = (...args) => {
+      const builder = new Builder(...args)
+      builder.metaTransforms = metaTransforms
+      builder.callbacks = {}
+      builder.curriedCallbacks = {
+        onSuccess:
+          curriedCallbacks.onSuccess || callbacks.onSuccess
+            ? [...(curriedCallbacks.onSuccess || [])].concat(
+                callbacks.onSuccess || []
+              )
+            : undefined,
+        onFailure:
+          curriedCallbacks.onFailure || callbacks.onFailure
+            ? [...(curriedCallbacks.onFailure || [])].concat(
+                callbacks.onFailure || []
+              )
+            : undefined,
+      }
+      builder.curriedArgs = nextArgs
+      return builder
+    }
+
+    const frozenBobBuilder = makeBuilder(this.actionCreator, this.dispatch)
+    const boundActionCreator = frozenBobBuilder.run.bind(frozenBobBuilder)
+
+    return attachBuilder(
+      boundActionCreator,
+      this.actionCreator,
+      this.dispatch,
+      makeBuilder
+    )
+  }
+
+  run(...argsWithDepsLocal) {
+    const argsWithDeps = this.curriedArgs.concat(argsWithDepsLocal)
     // Deps can't be runned
     if (!shouldRunDeps(argsWithDeps)) {
       return
@@ -47,8 +121,9 @@ class Builder {
     let action = this.actionCreator(...args)
 
     if (isEffectAction(action)) {
+      const callbacks = mergeCallbacks(this.curriedCallbacks, this.callbacks)
       action = action.extend({
-        callbacks: this.callbacks,
+        callbacks,
       })
 
       // Apply meta from deps
@@ -71,21 +146,23 @@ class Builder {
     this.dispatch(action)
   }
 
-  asPromise(...args) {
+  asPromise(...argsLocal) {
+    const args = this.curriedArgs.concat(argsLocal)
+    const callbacks = mergeCallbacks(this.curriedCallbacks, this.callbacks)
     return new Promise((resolve, reject) => {
       let action = this.actionCreator(...args)
       if (isEffectAction(action)) {
         action = action.extend({
           callbacks: {
             onSuccess: (...args) => {
-              if (this.callbacks.onSuccess) {
-                this.callbacks.onSuccess(...args)
+              if (callbacks.onSuccess) {
+                callbacks.onSuccess(...args)
               }
               resolve(...args)
             },
             onFailure: (...args) => {
-              if (this.callbacks.onFailure) {
-                this.callbacks.onFailure(...args)
+              if (callbacks.onFailure) {
+                callbacks.onFailure(...args)
               }
               reject(...args)
             },
@@ -115,15 +192,23 @@ class Builder {
  * The run method throws an exception just to give the user a nicer feedback on the error he/she would receive
  *  in case of bad invocation
  */
-function attachBuilder(boundActionCreator, actionCreator, dispatch) {
-  boundActionCreator.onSuccess = callback => {
-    return new Builder(actionCreator, dispatch).onSuccess(callback)
+function attachBuilder(
+  boundActionCreator,
+  actionCreator,
+  dispatch,
+  makeBuilder = (...args) => new Builder(...args)
+) {
+  boundActionCreator.onSuccess = (callback) => {
+    return makeBuilder(actionCreator, dispatch).onSuccess(callback)
   }
-  boundActionCreator.onFailure = callback => {
-    return new Builder(actionCreator, dispatch).onFailure(callback)
+  boundActionCreator.onFailure = (callback) => {
+    return makeBuilder(actionCreator, dispatch).onFailure(callback)
   }
-  boundActionCreator.withMeta = meta => {
-    return new Builder(actionCreator, dispatch).withMeta(meta)
+  boundActionCreator.withMeta = (meta) => {
+    return makeBuilder(actionCreator, dispatch).withMeta(meta)
+  }
+  boundActionCreator.curry = (...curryArgs) => {
+    return makeBuilder(actionCreator, dispatch).curry(...curryArgs)
   }
   boundActionCreator.run = () => {
     throw new Error(
@@ -131,7 +216,7 @@ function attachBuilder(boundActionCreator, actionCreator, dispatch) {
     )
   }
   boundActionCreator.asPromise = (...args) => {
-    return new Builder(actionCreator, dispatch).asPromise(...args)
+    return makeBuilder(actionCreator, dispatch).asPromise(...args)
   }
   return boundActionCreator
 }
