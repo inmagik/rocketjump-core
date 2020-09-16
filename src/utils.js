@@ -1,4 +1,4 @@
-export const arrayze = a => (Array.isArray(a) ? a : [a])
+export const arrayze = (a) => (Array.isArray(a) ? a : [a])
 
 // Object path getter
 export function get(obj, path, defaultValue = undefined) {
@@ -39,7 +39,7 @@ export function mapValues(object, iteratee) {
   object = Object(object)
   const result = {}
 
-  Object.keys(object).forEach(key => {
+  Object.keys(object).forEach((key) => {
     result[key] = iteratee(object[key], key, object)
   })
   return result
@@ -56,14 +56,14 @@ export const proxyObject = (obj, proxy) => {
   if (typeof proxy === 'object' && proxy !== null) {
     return {
       ...obj,
-      ...mapValues(proxy, proxyFn => proxyFn(obj)),
+      ...mapValues(proxy, (proxyFn) => proxyFn(obj)),
     }
   }
   return obj
 }
 
 // Compose functions
-export const kompose = (...fns) => x => fns.reduce((v, f) => f(v), x)
+export const kompose = (...fns) => (x) => fns.reduce((v, f) => f(v), x)
 
 export const proxyReducer = (reducer, proxyFn, ...extraArgs) => {
   if (typeof proxyFn === 'function') {

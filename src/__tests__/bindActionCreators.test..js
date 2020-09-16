@@ -163,7 +163,7 @@ describe('rocketjump action builder', () => {
       .withMeta({ gang: 20900 })
       .curry(99)
     curriedMetaHello2
-      .withMeta(meta => ({ ...meta, k: meta.k + 1 }))
+      .withMeta((meta) => ({ ...meta, k: meta.k + 1 }))
       .run('O.o')
     expect(hello).toHaveBeenLastCalledWith('x', 99, 'O.o')
     expect(failure).toHaveBeenCalledTimes(1)
@@ -175,7 +175,7 @@ describe('rocketjump action builder', () => {
       },
       meta: {
         k: 100,
-        gang: 20900
+        gang: 20900,
       },
       callbacks: {
         onSuccess: expect.any(Function),
@@ -321,7 +321,7 @@ describe('rocketjump action builder', () => {
       .withMeta({ gang: 20900 })
       .curry(99)
     curriedMetaHello2
-      .withMeta(meta => ({ ...meta, k: meta.k + 1 }))
+      .withMeta((meta) => ({ ...meta, k: meta.k + 1 }))
       .asPromise('O.o')
     expect(hello).toHaveBeenLastCalledWith('x', 99, 'O.o')
     expect(failure).toHaveBeenCalledTimes(1)
@@ -333,7 +333,7 @@ describe('rocketjump action builder', () => {
       },
       meta: {
         k: 100,
-        gang: 20900
+        gang: 20900,
       },
       callbacks: {
         onSuccess: expect.any(Function),

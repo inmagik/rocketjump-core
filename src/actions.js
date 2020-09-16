@@ -8,7 +8,7 @@ const EFFECT_ACTION = '@@RJ/EFFECT'
  *  it is passed to the rj observable to interact with the side effect:
  *  run the side effect, cancel it etc...
  */
-const makeEffectAction = action => {
+const makeEffectAction = (action) => {
   Object.defineProperty(action, EFFECT_ACTION, { value: true })
   return action
 }
@@ -16,7 +16,7 @@ const makeEffectAction = action => {
 /**
  * Check if is an effect action
  */
-export const isEffectAction = action => {
+export const isEffectAction = (action) => {
   return action[EFFECT_ACTION] === true
 }
 

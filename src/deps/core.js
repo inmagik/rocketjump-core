@@ -49,7 +49,7 @@ class DeBp {
 export const ifDep = (a, cbTrue, cbFalse) =>
   a instanceof DeBp ? cbTrue() : cbFalse()
 
-export const RunDeBp = a =>
+export const RunDeBp = (a) =>
   ifDep(
     a,
     () =>
@@ -62,7 +62,7 @@ export const RunDeBp = a =>
     () => new DeBp(a, { shouldRun: true })
   )
 
-export const NotRunDeBp = a =>
+export const NotRunDeBp = (a) =>
   ifDep(
     a,
     () =>
@@ -86,7 +86,7 @@ export const WithMetaDeBp = (a, meta) =>
     () => new DeBp(a, { shouldRun: true, meta })
   )
 
-export const WithMetaOnMountDeBp = meta =>
+export const WithMetaOnMountDeBp = (meta) =>
   new DeBp(true, {
     shouldRun: true,
     meta,
@@ -94,7 +94,7 @@ export const WithMetaOnMountDeBp = meta =>
     skipRunValue: true,
   })
 
-export const WithAlwaysMeta = meta =>
+export const WithAlwaysMeta = (meta) =>
   new DeBp(true, {
     shouldRun: true,
     meta,
@@ -102,7 +102,7 @@ export const WithAlwaysMeta = meta =>
     skipRunValue: true,
   })
 
-export const getDepValue = a =>
+export const getDepValue = (a) =>
   ifDep(
     a,
     () => a.getValue(),
@@ -116,7 +116,7 @@ export const getDepMeta = (a, onMount) =>
     () => undefined
   )
 
-export const shouldDepRun = a =>
+export const shouldDepRun = (a) =>
   ifDep(
     a,
     () => a.shouldRun(),

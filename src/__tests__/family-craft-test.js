@@ -6,11 +6,11 @@ describe('rocketjump-core crafter', () => {
     const rjGiova = forgeRocketJump({
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
-      makeRecursionRjs: rjs => rjs, // don't touch configs
+      makeRecursionRjs: (rjs) => rjs, // don't touch configs
       makeExport: (_, config, rjExport = {}) => ({
         babu: 23, // Exports always BaBu
       }),
-      finalizeExport: rjExport => ({ ...rjExport }), // don't hack config
+      finalizeExport: (rjExport) => ({ ...rjExport }), // don't hack config
     })
 
     const PartialRj = rjGiova()
@@ -25,21 +25,21 @@ describe('rocketjump-core crafter', () => {
     const rjGiova = forgeRocketJump({
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
-      makeRecursionRjs: rjs => rjs, // don't touch configs
+      makeRecursionRjs: (rjs) => rjs, // don't touch configs
       makeExport: (_, config, rjExport = {}) => ({
         babu: 23, // Exports always BaBu
       }),
-      finalizeExport: rjExport => ({ ...rjExport }), // don't hack config
+      finalizeExport: (rjExport) => ({ ...rjExport }), // don't hack config
     })
 
     const rjSkaffo = forgeRocketJump({
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
-      makeRecursionRjs: rjs => rjs, // don't touch configs
+      makeRecursionRjs: (rjs) => rjs, // don't touch configs
       makeExport: (_, config, rjExport = {}) => ({
         babu: 23, // Exports always BaBu
       }),
-      finalizeExport: rjExport => ({ ...rjExport }), // don't hack config
+      finalizeExport: (rjExport) => ({ ...rjExport }), // don't hack config
     })
 
     const PartialRj = rjGiova()

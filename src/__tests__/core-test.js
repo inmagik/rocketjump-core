@@ -7,14 +7,14 @@ describe('rocketjump-core', () => {
     const rj = forgeRocketJump({
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
-      makeRecursionRjs: rjs => rjs, // don't touch configs
+      makeRecursionRjs: (rjs) => rjs, // don't touch configs
       makeExport: (_, config, rjExport = {}) => {
         return {
           message: (rjExport.message || '') + (config.m || ''),
           magic: (config.n || 0) + (rjExport.magic || 0),
         }
       },
-      finalizeExport: rjExport => ({ ...rjExport }), // don't hack config
+      finalizeExport: (rjExport) => ({ ...rjExport }), // don't hack config
     })
 
     expect(rj({})()).toEqual({ magic: 0, message: '' })
@@ -46,8 +46,8 @@ describe('rocketjump-core', () => {
   it('should kick ass with recursion but lazy', () => {
     const exportMessage = makeExportValue({
       defaultValue: '',
-      isLazy: v => v === null,
-      shouldCompose: v => typeof v === 'string',
+      isLazy: (v) => v === null,
+      shouldCompose: (v) => typeof v === 'string',
       compose: (message, m) => message + m,
     })
 
@@ -55,11 +55,11 @@ describe('rocketjump-core', () => {
     const rj = forgeRocketJump({
       shouldRocketJump: () => false, // double invocation
       makeRunConfig: () => null, // no run config
-      makeRecursionRjs: rjs => rjs, // don't touch configs
+      makeRecursionRjs: (rjs) => rjs, // don't touch configs
       makeExport: (_, config, rjExport = {}) => ({
         message: exportMessage(rjExport.message, config.m),
       }),
-      finalizeExport: rjExport => ({ ...rjExport }), // don't hack config
+      finalizeExport: (rjExport) => ({ ...rjExport }), // don't hack config
     })
 
     expect(rj({})()).toEqual({ message: '' })
